@@ -10,6 +10,8 @@ import {
 import Icon from "react-native-vector-icons/FontAwesome";
 import { Button, Checkbox } from "react-native-paper";
 
+import icon from "../assets/icon.png";
+
 const LoginScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,7 +24,7 @@ const LoginScreen = () => {
   return (
     <View style={styles.container}>
       <Image
-        source={{ uri: "assets/icon.png" }} // Replace with your logo image path
+        source={icon} // Replace with your logo image path
         style={styles.logo}
       />
       <Text style={styles.title}>כניסה משתמש</Text>
