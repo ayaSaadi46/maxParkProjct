@@ -6,13 +6,14 @@ import CreateParkingScreen from "./components/CreateParkingScreen";
 import ParkingReservationScreen from "./components/ParkingReservationScreen";
 import MainScreen from "./components/MainScreen";
 import ParkingLot from "./components/ParkingLot";
+import Reservations from "./components/Reservations";
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="ParkingLot">
+      <Stack.Navigator initialRouteName="Reservations">
         <Stack.Screen name="MainScreen" component={MainScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="CreateParking" component={CreateParkingScreen} />
@@ -20,6 +21,8 @@ export default function App() {
           name="ParkingReservationScreen"
           component={ParkingReservationScreen}
         />
+        <Stack.Screen name="Reservations" component={Reservations} />
+
         <Stack.Screen name="ParkingLot" component={ParkingLot} />
       </Stack.Navigator>
     </NavigationContainer>
