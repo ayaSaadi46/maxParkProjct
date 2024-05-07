@@ -33,7 +33,7 @@ const ParkingReservationScreen = ({ onReservationConfirm }) => {
   }, []);
 
   // saveParking() {
-  //   axios.post("https://api.github.com/users/mapbox", {startTime, endTime}).then((response) => {
+  //   axios.post("http://api.github.com/users/mapbox", {startTime, endTime}).then((response) => {
 
   //   });
   // }

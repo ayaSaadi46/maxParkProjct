@@ -8,7 +8,8 @@ import {
   StyleSheet,
 } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
-import { Button, Checkbox } from "react-native-paper";
+import { Checkbox } from "react-native-paper";
+import { useNavigation } from "@react-navigation/native";
 
 import icon from "../assets/icon.png";
 
@@ -16,17 +17,63 @@ const LoginScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isChecked, setIsChecked] = useState(false);
+  const navigation = useNavigation();
 
   const toggleCheckbox = () => {
     setIsChecked(!isChecked);
   };
 
+  function submitLogIn(email, password) {
+    const formData = {
+      UserId: 0,
+      UserEmail: email,
+      UserPassword: password,
+      UserName: "string",
+      UserLastName: "string",
+      UserCarNum: "string",
+      UserPhone: "string",
+      isAdmin: true,
+      isManager: true,
+    };
+
+    const requestOptions = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(formData), // Convert the formData object into a JSON string
+    };
+
+    const url = `http://localhost:7198/api/Users/LogIn`;
+    fetch(url, requestOptions)
+      .then((response) => response.json())
+      .then((data) => {
+        switch (data) {
+          case 1:
+            console.log("Login Admin successful");
+            // Handle success for admin login
+            break;
+          case 2:
+            console.log("Login Manager successful");
+            // Handle success for manager login
+            break;
+          case 3:
+            console.log("Login User successful");
+            navigation.navigate("MainScreen");
+            break;
+          default:
+            alert("Email or Password incorrect");
+            break;
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error, url);
+      });
+  }
+
   return (
     <View style={styles.container}>
-      <Image
-        source={icon} // Replace with your logo image path
-        style={styles.logo}
-      />
+      <Image source={icon} style={styles.logo} />
       <Text style={styles.title}>כניסה משתמש</Text>
 
       <View style={styles.inputContainer}>
@@ -52,15 +99,16 @@ const LoginScreen = () => {
       <View style={styles.rememberMeContainer}>
         <Checkbox
           status={isChecked ? "checked" : "unchecked"}
-          onPress={() => {
-            setIsChecked(!isChecked);
-          }}
-          color={"#007bff"} // Optional: Customize the color
+          onPress={toggleCheckbox}
+          color={"#007bff"}
         />
         <Text style={styles.rememberMeText}>תזכור אותי</Text>
       </View>
 
-      <TouchableOpacity style={styles.button}>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => submitLogIn(email, password)}
+      >
         <Text style={styles.buttonText}>כניסה</Text>
       </TouchableOpacity>
 
@@ -75,18 +123,18 @@ const styles = StyleSheet.create({
     padding: 10,
     margin: 10,
     alignItems: "center",
-    position: "relative", // Positioned relative to place the icon inside
+    position: "relative",
   },
   input: {
-    direction: "rtl",
+    writingDirection: "rtl",
     flex: 1,
-    paddingLeft: 35, // Make space for the icon inside the input
+    paddingLeft: 35,
   },
   icon: {
-    position: "absolute", // Positioned absolutely to float over the input field
+    position: "absolute",
     right: "26px",
     paddingBottom: "10px",
-    zIndex: 1, // Ensures the icon is above the input field
+    zIndex: 1,
   },
   container: {
     flex: 1,
@@ -101,18 +149,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
   },
-  input: {
-    width: "100%",
-    padding: 15,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 5,
-  },
   button: {
     width: "100%",
     padding: 15,
-    backgroundColor: "#007bff", // Replace with your button color
+    backgroundColor: "#007bff",
     alignItems: "center",
     borderRadius: 5,
   },
@@ -131,7 +171,7 @@ const styles = StyleSheet.create({
   },
   forgotPassword: {
     marginTop: 20,
-    color: "#007bff", // Use same color as button for consistency
+    color: "#007bff",
   },
 });
 
