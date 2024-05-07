@@ -30,7 +30,7 @@ const NavBar = () => {
       </TouchableOpacity>
 
       <TouchableOpacity onPress={goToParking} style={styles.navItem}>
-        <Icon name="parking" size={24} color="#4F8EF7" />
+        <Icon name="home" size={24} color="#4F8EF7" />
         <Text style={styles.navText}>הזמנת חניה</Text>
       </TouchableOpacity>
     </View>

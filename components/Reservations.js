@@ -132,21 +132,34 @@ const Reservations = () => {
                       )}
                     />
                   </View>
-                  <Text style={styles.parkingNameHeader}>
-                    {filteredReservation.parkName}
-                  </Text>
-                  {filteredReservation.markName && (
-                    <Text style={styles.markNameHeader}>
-                      חניון מס':{filteredReservation.markName}
+                  <View>
+                    <Text style={styles.parkingNameHeader}>
+                      {filteredReservation.parkName}
                     </Text>
+                  </View>
+
+                  {filteredReservation.markName && (
+                    <View>
+                      <Text style={styles.markNameHeader}>
+                        חניון מס':{filteredReservation.markName}
+                      </Text>
+                    </View>
                   )}
-                  <Text>
-                    {filteredReservation.reservation_STime} שעת התחלה:{" "}
-                  </Text>
-                  <Text>
-                    {filteredReservation.reservation_ETime} שעת סיום:{" "}
-                  </Text>
-                  <Text>{filteredReservation.reservationDate.toString()}</Text>
+                  <View>
+                    <Text>
+                      {filteredReservation.reservation_STime} שעת התחלה:{" "}
+                    </Text>
+                  </View>
+                  <View>
+                    <Text>
+                      {filteredReservation.reservation_ETime} שעת סיום:{" "}
+                    </Text>
+                  </View>
+                  <View>
+                    <Text>
+                      {filteredReservation.reservationDate.toString()}
+                    </Text>
+                  </View>
                 </View>
                 {filteredReservation.reservationStatus === "pending" ? (
                   <TouchableOpacity style={styles.button}>
