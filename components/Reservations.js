@@ -11,12 +11,15 @@ import {
 import NavBar from "./NavBar";
 import icon from "../assets/icon.png";
 import { Icon } from "react-native-elements";
+import { useNavigation } from "@react-navigation/native";
+import { getAllReservationsByUserId } from "../services/apiService";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Reservations = () => {
   const [reservations, setReservations] = useState([]);
   const [filteredReservations, setFilteredReservations] = useState([]);
-
-  const [selectedFilter, setSelectedFilter] = useState("all"); // Default filter
+  const [selectedFilter, setSelectedFilter] = useState("all");
+  const navigation = useNavigation();
 
   const handleFilterSelect = (filter) => {
     setSelectedFilter(filter);
@@ -29,13 +32,12 @@ const Reservations = () => {
   };
 
   const getStatusStyle = (status) => {
-    return status === "pending" ? "orange" : "green";
+    return status === "הזמנה בהמתנה" ? "orange" : "green";
   };
 
   useEffect(() => {
     if (reservations.length === 0) return;
 
-    console.log("filter change to ", selectedFilter);
     if (selectedFilter === "all") {
       setFilteredReservations(reservations);
       return;
@@ -43,31 +45,26 @@ const Reservations = () => {
     const tempFilter = reservations.filter(
       (reservation) => reservation.reservationStatus === selectedFilter
     );
-    console.log(tempFilter);
     setFilteredReservations(tempFilter);
   }, [selectedFilter]);
 
   useEffect(() => {
-    const tempRes = [
-      {
-        reservationDate: new Date("2024-05-08 00:00:00.000"),
-        reservation_STime: "08:00:00.0000000",
-        reservation_ETime: "16:00:00.0000000",
-        reservationStatus: "confirmed",
-        parkName: "חניון רופין",
-        markName: "A01",
-      },
-      {
-        reservationDate: new Date("2024-05-09 00:00:00.000"),
-        reservation_STime: "10:00:00.0000000",
-        reservation_ETime: "12:00:00.0000000",
-        reservationStatus: "pending",
-        parkName: "חניון רופין",
-      },
-    ];
+    const fetchReservations = async () => {
+      const userId = 6; // await AsyncStorage.getItem("userId");
+      if (userId) {
+        const reservations = await getAllReservationsByUserId(userId);
+        reservations.map(
+          (reservation) =>
+            (reservation.reservationDate = new Date(
+              reservation.reservation_Date
+            ))
+        );
+        setReservations(reservations);
+        setFilteredReservations(reservations);
+      }
+    };
 
-    setReservations(tempRes);
-    setFilteredReservations(tempRes);
+    fetchReservations();
   }, []);
 
   return (
@@ -83,14 +80,13 @@ const Reservations = () => {
             </View>
 
             <View style={styles.header}>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.goBack()}>
                 <Icon
                   name="arrow-back"
                   type="ionicon"
                   color="#007AFF"
-                  onPress={() => navigation.goBack()}
                   style={styles.backIcon}
-                />{" "}
+                />
               </TouchableOpacity>
               <Text style={styles.headerTitle}>ההזמנות שלי</Text>
             </View>
@@ -116,13 +112,13 @@ const Reservations = () => {
               </TouchableOpacity>
             </View>
 
-            {filteredReservations.map((filteredReservation) => (
-              <View style={styles.reservationCard}>
+            {filteredReservations.map((filteredReservation, index) => (
+              <View key={index} style={styles.reservationCard}>
                 <View style={styles.reservationDetails}>
                   <View style={styles.statusIcon}>
                     <Icon
                       name={
-                        filteredReservation.reservationStatus !== "pending"
+                        filteredReservation.reservationStatus !== "הזמנה בהמתנה"
                           ? "checkmark-circle-outline"
                           : "help-circle-outline"
                       }
@@ -132,36 +128,23 @@ const Reservations = () => {
                       )}
                     />
                   </View>
-                  <View>
-                    <Text style={styles.parkingNameHeader}>
-                      {filteredReservation.parkName}
-                    </Text>
-                  </View>
-
+                  <Text style={styles.parkingNameHeader}>
+                    {filteredReservation.parkName}
+                  </Text>
                   {filteredReservation.markName && (
-                    <View>
-                      <Text style={styles.markNameHeader}>
-                        חניון מס':{filteredReservation.markName}
-                      </Text>
-                    </View>
+                    <Text style={styles.markNameHeader}>
+                      חנייה מס': {filteredReservation.markName}
+                    </Text>
                   )}
-                  <View>
-                    <Text>
-                      {filteredReservation.reservation_STime} שעת התחלה:{" "}
-                    </Text>
-                  </View>
-                  <View>
-                    <Text>
-                      {filteredReservation.reservation_ETime} שעת סיום:{" "}
-                    </Text>
-                  </View>
-                  <View>
-                    <Text>
-                      {filteredReservation.reservationDate.toString()}
-                    </Text>
-                  </View>
+                  <Text>
+                    שעת התחלה: {filteredReservation.reservation_STime}
+                  </Text>
+                  <Text>שעת סיום: {filteredReservation.reservation_ETime}</Text>
+                  <Text>
+                    {filteredReservation.reservationDate.toLocaleString()}
+                  </Text>
                 </View>
-                {filteredReservation.reservationStatus === "pending" ? (
+                {filteredReservation.reservationStatus === "הזמנה בהמתנה" ? (
                   <TouchableOpacity style={styles.button}>
                     <Text style={styles.buttonText}>ביטול חנייה</Text>
                   </TouchableOpacity>
@@ -170,7 +153,14 @@ const Reservations = () => {
                     <TouchableOpacity style={styles.blockedParkBtn}>
                       <Text style={styles.buttonText}>חנייה תפוסה</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.startParkBtn}>
+                    <TouchableOpacity
+                      style={styles.startParkBtn}
+                      onPress={() =>
+                        navigation.navigate("ParkingPage", {
+                          reservation: filteredReservation,
+                        })
+                      }
+                    >
                       <Text style={styles.buttonText}>התחל חנייה</Text>
                     </TouchableOpacity>
                   </View>
@@ -187,16 +177,14 @@ const Reservations = () => {
 
 const styles = StyleSheet.create({
   safeArea: {
-    flex: 1, // Fills the entire screen space
+    flex: 1,
     backgroundColor: "#f5f5f5",
-    // or your desired background color for the safe area
   },
   container: {
-    flex: 1, // Ensures that the container takes up all available space
+    flex: 1,
   },
   scrollView: {
-    flex: 1, // Ensures that the ScrollView takes up all available space
-    // Your other styles for the ScrollView
+    flex: 1,
   },
   header: {
     alignItems: "center",
@@ -208,13 +196,12 @@ const styles = StyleSheet.create({
   },
   startParkBtn: {
     backgroundColor: "green",
-    color: "white",
     padding: 10,
     borderRadius: 15,
     alignItems: "center",
   },
   parkingNameHeader: {
-    fontSize: "x-large",
+    fontSize: 20,
     fontWeight: "bold",
     alignSelf: "center",
     position: "absolute",
@@ -222,12 +209,11 @@ const styles = StyleSheet.create({
   markNameHeader: {
     alignSelf: "center",
     fontWeight: "600",
-    fontSize: "smaller",
-    margin: "7px",
+    fontSize: 14,
+    margin: 7,
   },
   blockedParkBtn: {
     backgroundColor: "red",
-    color: "white",
     padding: 10,
     borderRadius: 15,
     alignItems: "center",
@@ -244,23 +230,25 @@ const styles = StyleSheet.create({
   },
   filterButton: {
     padding: 10,
-    border: "solid 2px #0056b3",
+    borderWidth: 2,
+    borderColor: "#0056b3",
     color: "#0056b3",
     borderRadius: 20,
   },
   confirmedStatus: {
-    color: "green !important",
+    color: "green",
   },
   selectedFilterButton: {
     padding: 10,
-    border: "solid 2px #0056b3",
+    borderWidth: 2,
+    borderColor: "#0056b3",
     backgroundColor: "#0056b3",
     color: "white",
     borderRadius: 20,
   },
   statusIcon: {
-    fontSize: "20px",
-    alignItems: "start",
+    fontSize: 20,
+    alignItems: "flex-start",
   },
   filterText: {
     color: "inherit",
@@ -283,7 +271,7 @@ const styles = StyleSheet.create({
   reservationStatus: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "green", // Adjust based on status
+    color: "green",
   },
   button: {
     backgroundColor: "#007bff",
@@ -294,7 +282,7 @@ const styles = StyleSheet.create({
   logo: {
     width: 100,
     height: 50,
-    resizeMode: "contain", // or 'cover'
+    resizeMode: "contain",
   },
   reservationSection: {
     paddingHorizontal: 20,
@@ -304,19 +292,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
     marginVertical: 10,
-  },
-  reservationCard: {
-    backgroundColor: "#ffffff",
-    borderRadius: 10,
-    padding: 15,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.22,
-    shadowRadius: 2.22,
-    elevation: 3,
   },
   buttonText: {
     color: "#ffffff",

@@ -12,6 +12,7 @@ import { Checkbox } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 
 import icon from "../assets/icon.png";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const LoginScreen = () => {
   const [email, setEmail] = useState("");
@@ -23,7 +24,7 @@ const LoginScreen = () => {
     setIsChecked(!isChecked);
   };
 
-  function submitLogIn(email, password) {
+  const submitLogIn = async (email, password) => {
     const formData = {
       UserId: 0,
       UserEmail: email,
@@ -41,35 +42,34 @@ const LoginScreen = () => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(formData), // Convert the formData object into a JSON string
+      body: JSON.stringify(formData),
     };
 
-    const url = `http://localhost:7198/api/Users/LogIn`;
-    fetch(url, requestOptions)
-      .then((response) => response.json())
-      .then((data) => {
-        switch (data) {
-          case 1:
-            console.log("Login Admin successful");
-            // Handle success for admin login
-            break;
-          case 2:
-            console.log("Login Manager successful");
-            // Handle success for manager login
-            break;
-          case 3:
-            console.log("Login User successful");
-            navigation.navigate("MainScreen");
-            break;
-          default:
-            alert("Email or Password incorrect");
-            break;
-        }
-      })
-      .catch((error) => {
-        console.error("Error:", error, url);
-      });
-  }
+    const url = `http://10.0.2.2:7198/api/Users/LogIn`;
+
+    try {
+      const response = await fetch(url, requestOptions);
+      const data = await response.json();
+
+      switch (data) {
+        case 1:
+          console.log("Login Admin successful");
+          break;
+        case 2:
+          console.log("Login Manager successful");
+          break;
+        case 3:
+          console.log("Login User successful");
+          navigation.navigate("MainScreen");
+          break;
+        default:
+          alert("Email or Password incorrect");
+          break;
+      }
+    } catch (error) {
+      console.error("Error:", error, url);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -140,11 +140,13 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "white",
   },
   logo: {
-    width: 150,
-    height: 150,
+    width: 300,
+    height: 200,
     resizeMode: "contain",
+    marginBottom: 20,
   },
   title: {
     fontSize: 24,

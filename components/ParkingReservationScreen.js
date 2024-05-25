@@ -6,47 +6,102 @@ import {
   Text,
   TouchableOpacity,
 } from "react-native";
-import { Button, Icon } from "react-native-elements";
+import { Button } from "react-native-elements";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import RNPickerSelect from "react-native-picker-select";
 import CalendarPicker from "react-native-calendar-picker";
-import axios from "axios";
-import { getUserName } from "../services/apiService";
+import { getUserById } from "../services/apiService";
 import Header from "./Header";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const ParkingReservationScreen = ({ onReservationConfirm }) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedParkingLot, setSelectedParkingLot] = useState(null);
   const [startTime, setStartTime] = useState(new Date());
   const [endTime, setEndTime] = useState(new Date());
-
+  const [showStartTimePicker, setShowStartTimePicker] = useState(false);
+  const [showEndTimePicker, setShowEndTimePicker] = useState(false);
   const [usernametest, setUsernametest] = useState("");
 
   useEffect(() => {
-    getUserName()
-      .then((username) => {
-        setUsernametest(username);
-      })
-      .catch((err) => {
+    const fetchUserId = async () => {
+      try {
+        const userId = await AsyncStorage.getItem("userId");
+        if (userId !== null) {
+          const user = await getUserById(userId);
+          console.log(user);
+          setUsernametest(user.userName);
+        }
+      } catch (err) {
         console.error(err);
-      });
+      }
+    };
+
+    fetchUserId();
   }, []);
-
-  // saveParking() {
-  //   axios.post("http://api.github.com/users/mapbox", {startTime, endTime}).then((response) => {
-
-  //   });
-  // }
 
   const onDateChange = (date) => {
     if (date) {
       setSelectedDate(date);
     }
   };
+  const handleAddReservation = async () => {
+    // Assuming parkId and markId are derived from selectedParkingLot or other parts of your app
+    const parkId = selectedParkingLot === "parkingLotA" ? 1 : 2; // Example transformation
+    const markId = 0; // Static or derived
+
+    // Formatting the date and time into a string acceptable for your backend
+    const reservationDate = selectedDate.toISOString().slice(0, 10);
+    const formattedStartTime = startTime.toISOString().slice(11, 19);
+    const formattedEndTime = endTime.toISOString().slice(11, 19);
+
+    const data = JSON.stringify({
+      reservationId: 0, // Assuming this is auto-generated
+      //userId: parseInt(usernametest),
+      userId: 6,
+      // parkId: parkId,
+      parkId: 3,
+      reservation_Date: reservationDate,
+      reservation_STime: formattedStartTime,
+      reservation_ETime: formattedEndTime,
+      reservation_Status: "", // Default status, change as needed
+      markId: markId,
+    });
+
+    try {
+      const response = await fetch(
+        "http://10.0.2.2:7198/api/api/Reservasions/newReservation",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: data,
+        }
+      );
+      const jsonResponse = await response.json();
+      if (response.ok) {
+        alert("Reservation added successfully!");
+        console.log("Reservation added successfully:", jsonResponse);
+      } else {
+        throw new Error("Failed to add reservation");
+      }
+    } catch (error) {
+      console.error("Error adding reservation:", error);
+      alert("Failed to add reservation. Please try again.");
+    }
+  };
 
   const handleConfirm = () => {
-    // העברת פרטי ההזמנה לשרת
-    onReservationConfirm(selectedDate, startTime, endTime, selectedParkingLot);
+    handleAddReservation();
+    if (onReservationConfirm) {
+      onReservationConfirm(
+        selectedDate,
+        startTime,
+        endTime,
+        selectedParkingLot
+      );
+    }
   };
 
   const today = new Date();
@@ -55,7 +110,7 @@ const ParkingReservationScreen = ({ onReservationConfirm }) => {
 
   return (
     <ScrollView style={styles.container}>
-      <Header></Header>
+      <Header />
       <View style={styles.content}>
         <Text style={styles.label}>בחר תאריך:</Text>
         <CalendarPicker
@@ -75,38 +130,56 @@ const ParkingReservationScreen = ({ onReservationConfirm }) => {
           ]}
           style={pickerSelectStyles}
         />
-
         <View style={styles.timeContainer}>
           <View style={styles.timePickerContainer}>
-            <Text style={styles.label}>שעת סיום</Text>
-            <DateTimePicker
-              value={endTime}
-              mode="time"
-              display="default"
-              onChange={(event, time) => {
-                if (time) {
-                  setEndTime(time);
-                }
-              }}
-            />
-          </View>
-
-          <View style={styles.timePickerContainer}>
             <Text style={styles.label}>שעת התחלה</Text>
-            <DateTimePicker
-              value={startTime}
-              mode="time"
-              display="default"
-              is24Hour={true}
-              onChange={(event, selectedTime) => {
-                if (selectedTime) {
-                  setStartTime(selectedTime);
-                }
-              }}
-            />
+            {!showStartTimePicker && (
+              <TouchableOpacity onPress={() => setShowStartTimePicker(true)}>
+                <Text style={styles.timeText}>
+                  {startTime.toLocaleTimeString("he-IL")}
+                </Text>
+              </TouchableOpacity>
+            )}
+            {showStartTimePicker && (
+              <DateTimePicker
+                value={startTime}
+                mode="time"
+                display="default"
+                is24Hour={true}
+                onChange={(event, selectedTime) => {
+                  if (event.type === "set" && selectedTime) {
+                    setStartTime(selectedTime);
+                  }
+                  setShowStartTimePicker(false);
+                }}
+              />
+            )}
+          </View>
+          <View style={styles.timePickerContainer}>
+            <Text style={styles.label}>שעת סיום</Text>
+            {!showEndTimePicker && (
+              <TouchableOpacity onPress={() => setShowEndTimePicker(true)}>
+                <Text style={styles.timeText}>
+                  {endTime.toLocaleTimeString("he-IL")}
+                </Text>
+              </TouchableOpacity>
+            )}
+            {showEndTimePicker && (
+              <DateTimePicker
+                value={endTime}
+                mode="time"
+                display="default"
+                is24Hour={true}
+                onChange={(event, selectedTime) => {
+                  if (event.type === "set" && selectedTime) {
+                    setEndTime(selectedTime);
+                  }
+                  setShowEndTimePicker(false);
+                }}
+              />
+            )}
           </View>
         </View>
-
         <Button
           title="הזמנה"
           onPress={handleConfirm}
@@ -120,22 +193,18 @@ const ParkingReservationScreen = ({ onReservationConfirm }) => {
 const styles = StyleSheet.create({
   timeContainer: {
     flex: 1,
-    flexDirection: "row", // Sets the main axis to horizontal
-    justifyContent: "space-around", // Distributes space around the items
-    alignItems: "center", // Aligns items vertically in the center
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
     padding: 20,
     backgroundColor: "#fff",
   },
   timePickerContainer: {
-    flex: 1, // Each picker container takes equal space
+    flex: 1,
   },
   container: {
     flex: 1,
     backgroundColor: "#fff",
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
   },
   content: {
     padding: 16,
@@ -145,13 +214,16 @@ const styles = StyleSheet.create({
     textAlign: "right",
     marginBottom: 8,
   },
-  dateButton: {
+  timeText: {
+    fontSize: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: "gray",
+    borderRadius: 4,
+    color: "black",
+    paddingRight: 30,
     textAlign: "right",
-    marginBottom: 16,
-  },
-  timeButton: {
-    textAlign: "right",
-    marginBottom: 16,
   },
   confirmButton: {
     marginTop: 20,

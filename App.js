@@ -2,11 +2,12 @@ import { StyleSheet, View } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import LoginScreen from "./components/Login";
-import CreateParkingScreen from "./components/CreateParkingScreen";
 import ParkingReservationScreen from "./components/ParkingReservationScreen";
 import MainScreen from "./components/MainScreen";
 import ParkingLot from "./components/ParkingLot";
+import ParkingPage from "./components/ParkingPage";
 import Reservations from "./components/Reservations";
+import Profile from "./components/Profile";
 
 const Stack = createNativeStackNavigator();
 
@@ -16,7 +17,9 @@ export default function App() {
       <Stack.Navigator initialRouteName="Reservations">
         <Stack.Screen name="MainScreen" component={MainScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="CreateParking" component={CreateParkingScreen} />
+        <Stack.Screen name="Profile" component={Profile} />
+        <Stack.Screen name="ParkingPage" component={ParkingPage} />
+
         <Stack.Screen
           name="ParkingReservationScreen"
           component={ParkingReservationScreen}

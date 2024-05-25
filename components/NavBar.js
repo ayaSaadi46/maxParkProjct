@@ -1,16 +1,16 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import Icon from "react-native-vector-icons/FontAwesome"; // Make sure to install this package
+import Icon from "react-native-vector-icons/FontAwesome";
 import { useNavigation } from "@react-navigation/native";
 const NavBar = () => {
   const navigation = useNavigation();
-  // You would replace these placeholder functions with actual navigation logic
-  const goToUserProfile = () => console.log("Go to User Profile");
-  const goToHistory = () => console.log("Go to History");
+
+  const goToUserProfile = () => navigation.navigate("Profile");
+  const goToHistory = () => console.log("MainScreen");
   const goToParking = () => {
     navigation.navigate("ParkingReservationScreen");
   };
-  const goToPayments = () => console.log("Go to Payments");
+  const goToPayments = () => navigation.navigate("Reservations");
 
   return (
     <View style={styles.navbarContainer}>
@@ -39,17 +39,17 @@ const NavBar = () => {
 
 const styles = StyleSheet.create({
   navbarContainer: {
-    position: "absolute", // Position it absolutely
-    bottom: 0, // Stick it to the bottom
-    left: 0, // Align to the left
-    right: 0, // Align to the right to stretch across
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
     backgroundColor: "#e6f0fa",
     flexDirection: "row",
     justifyContent: "space-evenly",
     alignItems: "center",
     backgroundColor: "#e6f0fa",
     paddingVertical: 10,
-    // Add elevation and shadow for Android and iOS respectively
+
     elevation: 10,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: -1 },

@@ -112,10 +112,9 @@ const ParkingLot = () => {
           };
         }
 
-        // Return the mark data unchanged if no matching reservation is found
         return mergedData;
       });
-      //console.log(mergedData);
+
       setSpots(marksData);
     } catch (error) {
       console.error("Error fetching parking spots:", error);
@@ -143,7 +142,7 @@ const ParkingLot = () => {
       data.reservation_Date.toDateString() + " " + data.reservation_ETime
     );
     const difference = endTime - startTime;
-    return difference / (1000 * 60 * 60); // convert milliseconds to hours
+    return difference / (1000 * 60 * 60);
   }
 
   return (
@@ -213,9 +212,9 @@ const styles = StyleSheet.create({
     borderRight: "solid 2px blue",
   },
   box: {
-    width: 50, // Width of each box
-    height: 50, // Height of each box
-    textAlign: "center", // Centers text horizontally
+    width: 50,
+    height: 50,
+    textAlign: "center",
     lineHeight: 50,
   },
   spot: {
