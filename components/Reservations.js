@@ -50,7 +50,7 @@ const Reservations = () => {
 
   useEffect(() => {
     const fetchReservations = async () => {
-      const userId = 6; // await AsyncStorage.getItem("userId");
+      const userId = await AsyncStorage.getItem("userId");
       if (userId) {
         const reservations = await getAllReservationsByUserId(userId);
         reservations.map(
@@ -80,14 +80,6 @@ const Reservations = () => {
             </View>
 
             <View style={styles.header}>
-              <TouchableOpacity onPress={() => navigation.goBack()}>
-                <Icon
-                  name="arrow-back"
-                  type="ionicon"
-                  color="#007AFF"
-                  style={styles.backIcon}
-                />
-              </TouchableOpacity>
               <Text style={styles.headerTitle}>ההזמנות שלי</Text>
             </View>
 

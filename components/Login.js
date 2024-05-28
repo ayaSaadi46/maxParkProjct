@@ -45,13 +45,14 @@ const LoginScreen = () => {
       body: JSON.stringify(formData),
     };
 
-    const url = `http://10.0.2.2:7198/api/Users/LogIn`;
+    const url = `http://10.0.2.2:7157/api/Users/LogIn`;
 
     try {
       const response = await fetch(url, requestOptions);
       const data = await response.json();
-
-      switch (data) {
+      AsyncStorage.setItem("userId", JSON.stringify(data.userId));
+      AsyncStorage.setItem("userFirstName", JSON.stringify(data.userFirstName));
+      switch (data.role) {
         case 1:
           console.log("Login Admin successful");
           break;

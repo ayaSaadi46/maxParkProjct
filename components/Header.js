@@ -1,11 +1,14 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Icon, Image } from "react-native-elements";
+import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import icon from "../assets/icon.png";
 
-const Header = ({ navigation }) => {
-  const username = "Aya";
+const Header = () => {
+  const navigation = useNavigation();
+  const username = "aya";
   return (
     <>
       <View style={styles.header}>

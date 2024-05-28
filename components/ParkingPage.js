@@ -1,11 +1,15 @@
-import { useRoute } from "@react-navigation/native";
+import { useRoute, useNavigation } from "@react-navigation/native";
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, Button, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { CircularProgress } from "react-native-circular-progress";
+import Modal from "react-native-modal";
+import NavBar from "./NavBar";
 
 const ParkingPage = () => {
   const [remainingTime, setRemainingTime] = useState(0);
+  const [isModalVisible, setModalVisible] = useState(false);
   const route = useRoute();
+  const navigation = useNavigation();
   const { reservation } = route.params;
 
   useEffect(() => {
@@ -27,17 +31,10 @@ const ParkingPage = () => {
   }, []);
 
   function calculateTimeDifferenceInSeconds(startTime, endTime) {
-    // Parse the time strings into Date objects
     const start = new Date(`1970-01-01T${startTime}Z`);
     const end = new Date(`1970-01-01T${endTime}Z`);
-
-    // Calculate the difference in milliseconds
     const differenceInMilliseconds = end - start;
-
-    // Convert milliseconds to seconds
-    const differenceInSeconds = differenceInMilliseconds / 1000;
-
-    return differenceInSeconds;
+    return differenceInMilliseconds / 1000;
   }
 
   const formatTime = (time) => {
@@ -48,6 +45,30 @@ const ParkingPage = () => {
       2,
       "0"
     )} : ${String(seconds).padStart(2, "0")}`;
+  };
+
+  const toggleModal = () => {
+    setModalVisible(!isModalVisible);
+  };
+
+  const handleReleaseParking = async () => {
+    try {
+      const response = await fetch(
+        `http://10.0.2.2:7157/api/Reservasions/reservationId?reservationId=${reservation.reservationId}`,
+        { method: "DELETE" }
+      );
+      if (!response.ok) {
+        throw new Error("Failed to release parking");
+      }
+      setModalVisible(false);
+      setTimeout(() => {
+        Alert.alert("החנייה שוחררה", "החנייה שוחררה בהצלחה", [
+          { text: "אישור", onPress: () => navigation.navigate("MainScreen") },
+        ]);
+      }, 500);
+    } catch (error) {
+      Alert.alert("שגיאה", "אירעה שגיאה בשחרור החנייה. נסה שוב.");
+    }
   };
 
   return (
@@ -89,13 +110,33 @@ const ParkingPage = () => {
         <TouchableOpacity style={styles.blueButton}>
           <Text style={styles.buttonText}>הארכת זמן חנייה</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.blueButton}>
+        <TouchableOpacity style={styles.blueButton} onPress={toggleModal}>
           <Text style={styles.buttonText}>שחרור חנייה</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.redButton}>
           <Text style={styles.buttonText}>מישהו חוסם אותי</Text>
         </TouchableOpacity>
       </View>
+      <Modal isVisible={isModalVisible}>
+        <View style={styles.modalContent}>
+          <Text style={styles.modalText}>
+            האם אתה בטוח שברצונך לשחרר את החנייה?
+          </Text>
+          <View style={styles.modalButtonContainer}>
+            <TouchableOpacity style={styles.modalButton} onPress={toggleModal}>
+              <Text style={styles.modalButtonText}>ביטול</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={handleReleaseParking}
+            >
+              <Text style={styles.modalButtonText}>אישור</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      <NavBar />
     </View>
   );
 };
@@ -151,6 +192,32 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   buttonText: {
+    color: "#fff",
+    fontSize: 16,
+  },
+  modalContent: {
+    backgroundColor: "white",
+    padding: 20,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  modalText: {
+    fontSize: 18,
+    marginBottom: 20,
+  },
+  modalButtonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "80%",
+  },
+  modalButton: {
+    backgroundColor: "#2196F3",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    margin: 10,
+  },
+  modalButtonText: {
     color: "#fff",
     fontSize: 16,
   },

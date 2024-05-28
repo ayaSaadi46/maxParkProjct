@@ -1,240 +1,236 @@
+import { useRoute, useNavigation } from "@react-navigation/native";
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-  ScrollView,
-  Image,
-} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
+import { CircularProgress } from "react-native-circular-progress";
+import Modal from "react-native-modal";
 
-import redCar from "../assets/car-red.png";
-import whiteCar from "../assets/car-white.png";
-import yellowCar from "../assets/car-yellow.png";
-
-const ParkingLot = () => {
-  const [spots, setSpots] = useState([]);
-  const [currentTime, setCurrentTime] = useState(new Date());
+const ParkingPage = () => {
+  const [remainingTime, setRemainingTime] = useState(0);
+  const [isModalVisible, setModalVisible] = useState(false);
+  const route = useRoute();
+  const navigation = useNavigation();
+  const { reservation } = route.params;
 
   useEffect(() => {
-    fetchParkingSpots();
+    if (reservation) {
+      const timeDifference = calculateTimeDifferenceInSeconds(
+        reservation.reservation_STime,
+        reservation.reservation_ETime
+      );
+      setRemainingTime(timeDifference);
+    }
+  }, [reservation]);
+
+  useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentTime(new Date()); // עדכון השעון בזמן אמת כל שנייה
-      fetchParkingSpots(); // רענון נתוני החניון בזמן אמת
+      setRemainingTime((prev) => (prev > 0 ? prev - 1 : 0));
     }, 1000);
+
     return () => clearInterval(timer);
   }, []);
 
-  const fetchParkingSpots = async () => {
+  function calculateTimeDifferenceInSeconds(startTime, endTime) {
+    const start = new Date(`1970-01-01T${startTime}Z`);
+    const end = new Date(`1970-01-01T${endTime}Z`);
+    const differenceInMilliseconds = end - start;
+    return differenceInMilliseconds / 1000;
+  }
+
+  const formatTime = (time) => {
+    const hours = Math.floor(time / 3600);
+    const minutes = Math.floor((time % 3600) / 60);
+    const seconds = time % 60;
+    return `${String(hours).padStart(2, "0")} : ${String(minutes).padStart(
+      2,
+      "0"
+    )} : ${String(seconds).padStart(2, "0")}`;
+  };
+
+  const toggleModal = () => {
+    setModalVisible(!isModalVisible);
+  };
+
+  const handleReleaseParking = async () => {
+    if (!reservation || !reservation.reservationId) {
+      Alert.alert("שגיאה", "הזמנה לא נמצאה.");
+      return;
+    }
+
     try {
-      //   const response = await fetch("https://your-api-url.com/parkingSpots");
-      //   const data = await response.json();
-
-      const reservationData = [
+      // קריאה ל-API כדי למחוק את ההזמנה מהשרת
+      await fetch(
+        `http://10.0.2.2:7157/api/Reservasions/reservationId?reservationId=${reservation.reservationId}`,
         {
-          id: 1,
-          reservation_Date: new Date(),
-          reservation_STime: "08:00:00.0000000",
-          reservation_ETime: "16:00:00.0000000",
-          reservation_Status: "reserved",
-          markName: "A01",
-          markName_Block: "A03",
-        },
-        {
-          id: 2,
-          reservation_Date: new Date(),
-          reservation_STime: "10:00:00.0000000",
-          reservation_ETime: "14:00:00.0000000",
-          reservation_Status: "occupied",
-          markName: "A02",
-          markName_Block: "",
-        },
-      ];
-
-      const marksData = [
-        {
-          id: 1,
-          isAvailable: false,
-          markName: "A01",
-          markName_Block: "A02",
-        },
-        {
-          id: 2,
-          isAvailable: false,
-          markName: "A03",
-          markName_Block: "A04",
-        },
-        {
-          id: 3,
-          isAvailable: false,
-          markName: "A05",
-          markName_Block: "A06",
-        },
-        {
-          id: 4,
-          isAvailable: false,
-          markName: "A07",
-          markName_Block: "A08",
-        },
-        {
-          id: 5,
-          isAvailable: false,
-          markName: "A09",
-          markName_Block: "A10",
-        },
-      ];
-
-      // Merge reservations into marks data
-      const mergedData = marksData.map((mark) => {
-        // Find the reservation that matches the markName
-        const reservation = reservationData.find(
-          (res) => res.markName === mark.markName
-        );
-
-        // If a matching reservation is found, merge its details into the mark's data
-        if (reservation) {
-          return {
-            ...mark,
-            reservation_Date: reservation.reservation_Date,
-            reservation_STime: reservation.reservation_STime,
-            reservation_ETime: reservation.reservation_ETime,
-            reservation_Status: reservation.reservation_Status,
-            markName_Block: reservation.markName_Block,
-          };
-        } else {
-          return {
-            ...mark,
-            reservation_Date: new Date(),
-            reservation_STime: "",
-            reservation_ETime: "",
-            reservation_Status: "",
-          };
+          method: "DELETE",
         }
+      );
 
-        return mergedData;
-      });
-
-      setSpots(marksData);
+      setModalVisible(false);
+      setTimeout(() => {
+        Alert.alert("החנייה שוחררה", "החנייה שוחררה בהצלחה", [
+          {
+            text: "אישור",
+            onPress: () => navigation.navigate("MainScreen"),
+          },
+        ]);
+      }, 500);
     } catch (error) {
-      console.error("Error fetching parking spots:", error);
+      Alert.alert("שגיאה", "אירעה שגיאה בשחרור החנייה. נסה שוב.");
     }
   };
 
-  const getCarImage = (spot) => {
-    if (spot.reservation_Status === "occupied") {
-      const timeLeft = calculateTimeDifference(spot);
-      if (timeLeft <= 0) {
-        return redCar;
-      } else if (timeLeft <= 15) {
-        return yellowCar;
-      }
-      return whiteCar;
-    }
-    return null;
-  };
-
-  function calculateTimeDifference(data) {
-    const startTime = new Date(
-      data.reservation_Date.toDateString() + " " + data.reservation_STime
-    );
-    const endTime = new Date(
-      data.reservation_Date.toDateString() + " " + data.reservation_ETime
-    );
-    const difference = endTime - startTime;
-    return difference / (1000 * 60 * 60);
+  if (!reservation) {
+    return <Text>Loading...</Text>; // או כל אינדיקציה לטעינה שתרצה
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.clock}>{currentTime.toLocaleTimeString()}</Text>
-      <View style={styles.row}>
-        <View style={styles.col}>
-          {spots.map((spot, index) => (
-            <View style={styles.rowContainer}>
-              <TouchableOpacity
-                key={index}
-                style={[styles.spot, styles.box, styles.blocked]}
-                onPress={() =>
-                  Alert.alert(
-                    `Spot ${spot.markName}`,
-                    `Status: ${spot.reservation_Status || "free"}`
-                  )
-                }
-              >
-                <Text style={styles.text}>{spot.markName_Block}</Text>
-                <Image source={getCarImage(spot)} style={styles.carIcon} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                key={index}
-                style={[styles.spot, styles.box]}
-                onPress={() =>
-                  Alert.alert(
-                    `Spot ${spot.markName}`,
-                    `Status: ${spot.reservation_Status || "free"}`
-                  )
-                }
-              >
-                <Text style={styles.text}>{spot.markName}</Text>
-                <Image source={getCarImage(spot)} style={styles.carIcon} />
-              </TouchableOpacity>
-            </View>
-          ))}
+    <View style={styles.container}>
+      <CircularProgress
+        size={200}
+        width={15}
+        fill={(remainingTime / (3 * 60 * 60)) * 100}
+        tintColor="#3b5998"
+        backgroundColor="#e0e0e0"
+      >
+        {() => (
+          <Text style={styles.timerText}>{formatTime(remainingTime)}</Text>
+        )}
+      </CircularProgress>
+      <View style={styles.infoBox}>
+        <View style={styles.infoRow}>
+          <Text style={styles.label}>חנייה:</Text>
+          <Text style={styles.value}>{reservation.parkName}</Text>
+        </View>
+        <View style={styles.infoRow}>
+          <Text style={styles.label}>מיקום חנייה:</Text>
+          <Text style={styles.value}>{reservation.markName}</Text>
+        </View>
+        <View style={styles.infoRow}>
+          <Text style={styles.label}>תאריך:</Text>
+          <Text style={styles.value}>
+            {reservation.reservationDate.toLocaleString()}
+          </Text>
+        </View>
+        <View style={styles.infoRow}>
+          <Text style={styles.label}>טווח שעות:</Text>
+          <Text style={styles.value}>
+            {reservation.reservation_STime} - {reservation.reservation_ETime}
+          </Text>
         </View>
       </View>
-    </ScrollView>
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.blueButton}>
+          <Text style={styles.buttonText}>הארכת זמן חנייה</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.blueButton} onPress={toggleModal}>
+          <Text style={styles.buttonText}>שחרור חנייה</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.redButton}>
+          <Text style={styles.buttonText}>מישהו חוסם אותי</Text>
+        </TouchableOpacity>
+      </View>
+      <Modal isVisible={isModalVisible}>
+        <View style={styles.modalContent}>
+          <Text style={styles.modalText}>
+            האם אתה בטוח שברצונך לשחרר את החנייה?
+          </Text>
+          <View style={styles.modalButtonContainer}>
+            <TouchableOpacity style={styles.modalButton} onPress={toggleModal}>
+              <Text style={styles.modalButtonText}>ביטול</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={handleReleaseParking}
+            >
+              <Text style={styles.modalButtonText}>אישור</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 20,
-  },
-  row: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-around",
-  },
-  rowContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-around",
-    borderBottom: "solid 2px blue",
-    borderTop: "solid 2px blue",
-  },
-  col: {
-    flexDirection: "column",
-    flexWrap: "wrap",
-    justifyContent: "space-around",
-  },
-  blocked: {
-    borderRight: "solid 2px blue",
-  },
-  box: {
-    width: 50,
-    height: 50,
-    textAlign: "center",
-    lineHeight: 50,
-  },
-  spot: {
-    width: 100,
-    height: 100,
     justifyContent: "center",
     alignItems: "center",
-    margin: 5,
+    backgroundColor: "#fff",
+  },
+  timerText: {
+    fontSize: 24,
+    fontWeight: "bold",
+  },
+  infoBox: {
+    marginTop: 20,
+    padding: 20,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: "#ccc",
-    backgroundColor: "#f9f9f9",
+    width: "80%",
   },
-  text: {
-    color: "#000",
-    marginBottom: 5,
+  infoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 10,
   },
-  carIcon: {
-    width: 50,
-    height: 30,
+  label: {
+    fontSize: 16,
+    color: "#888",
+  },
+  value: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  buttonContainer: {
+    marginTop: 20,
+    width: "80%",
+    alignItems: "center",
+  },
+  blueButton: {
+    backgroundColor: "#2196F3",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    marginBottom: 10,
+  },
+  redButton: {
+    backgroundColor: "#f44336",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+  },
+  modalContent: {
+    backgroundColor: "white",
+    padding: 20,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  modalText: {
+    fontSize: 18,
+    marginBottom: 20,
+  },
+  modalButtonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "80%",
+  },
+  modalButton: {
+    backgroundColor: "#2196F3",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    margin: 10,
+  },
+  modalButtonText: {
+    color: "#fff",
+    fontSize: 16,
   },
 });
 
-export default ParkingLot;
+export default ParkingPage;

@@ -21,7 +21,7 @@ const ParkingReservationScreen = ({ onReservationConfirm }) => {
   const [endTime, setEndTime] = useState(new Date());
   const [showStartTimePicker, setShowStartTimePicker] = useState(false);
   const [showEndTimePicker, setShowEndTimePicker] = useState(false);
-  const [usernametest, setUsernametest] = useState("");
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     const fetchUserId = async () => {
@@ -30,7 +30,7 @@ const ParkingReservationScreen = ({ onReservationConfirm }) => {
         if (userId !== null) {
           const user = await getUserById(userId);
           console.log(user);
-          setUsernametest(user.userName);
+          setUser(user);
         }
       } catch (err) {
         console.error(err);
@@ -58,19 +58,19 @@ const ParkingReservationScreen = ({ onReservationConfirm }) => {
     const data = JSON.stringify({
       reservationId: 0, // Assuming this is auto-generated
       //userId: parseInt(usernametest),
-      userId: 6,
+      userId: user.userId,
       // parkId: parkId,
       parkId: 3,
       reservation_Date: reservationDate,
       reservation_STime: formattedStartTime,
       reservation_ETime: formattedEndTime,
-      reservation_Status: "", // Default status, change as needed
+      reservation_Status: "הזמנה בהמתנה", // Default status, change as needed
       markId: markId,
     });
 
     try {
       const response = await fetch(
-        "http://10.0.2.2:7198/api/api/Reservasions/newReservation",
+        "http://10.0.2.2:7157/api/Reservasions/newReservation",
         {
           method: "POST",
           headers: {
