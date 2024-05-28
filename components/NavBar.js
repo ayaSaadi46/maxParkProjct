@@ -24,8 +24,11 @@ const NavBar = () => {
         <Text style={styles.navText}>עמוד הבית</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={goToPayments} style={styles.navItem}>
-        <Icon name="credit-card" size={24} color="#4F8EF7" />
+      <TouchableOpacity
+        onPress={goToPayments}
+        style={[styles.navItem, styles.navItemLeftMargin]}
+      >
+        <Icon name="inbox" size={24} color="#4F8EF7" />
         <Text style={styles.navText}>הזמנות שלי</Text>
       </TouchableOpacity>
 
@@ -39,7 +42,7 @@ const NavBar = () => {
 
       <TouchableOpacity
         onPress={goToActiveParking}
-        style={styles.navItem}
+        style={[styles.navItem, styles.navItemRightMargin]}
         disabled={!parkingActive}
       >
         <Icon
@@ -81,6 +84,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flex: 1,
   },
+  navItemLeftMargin: {
+    marginRight: 40, // Adding space to the right of the left icon
+  },
+  navItemRightMargin: {
+    marginLeft: 40, // Adding space to the left of the right icon
+  },
   navText: {
     color: "#4F8EF7",
     fontSize: 12,
@@ -91,7 +100,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 30, // Moved higher than previously
     left: "50%",
-    transform: [{ translateX: -50 }], // Centering the button
+    transform: [{ translateX: -50 }],
     zIndex: 10,
   },
   outerCircle: {
