@@ -1,43 +1,89 @@
-import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Image,
-  SafeAreaView,
-} from "react-native";
+import React, { useCallback, useState } from "react";
+import { View, Text, StyleSheet, ScrollView, SafeAreaView } from "react-native";
 import NavBar from "./NavBar";
-import icon from "../assets/icon.png";
+import { Icon } from "react-native-elements";
+import { useFocusEffect } from "@react-navigation/native";
+import { getAllReservationsByUserId } from "../services/apiService";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { startOfDay } from "date-fns";
 
 const MainScreen = () => {
+  const [reservations, setReservations] = useState([]);
+
+  const getStatusStyle = (status) => {
+    return status === "הזמנה בהמתנה" ? "orange" : "green";
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      const fetchReservations = async () => {
+        const userId = await AsyncStorage.getItem("userId");
+        if (userId) {
+          const today = startOfDay(new Date());
+          const reservations = await getAllReservationsByUserId(userId);
+          const filteredReservations = reservations
+            .map((reservation) => ({
+              ...reservation,
+              reservationDate: new Date(reservation.reservation_Date),
+            }))
+            .filter((reservation) => {
+              return (
+                startOfDay(reservation.reservationDate).getTime() ===
+                  today.getTime() && reservation.reservationStatus === "אישור"
+              );
+            });
+          setReservations(filteredReservations);
+        }
+      };
+
+      fetchReservations();
+    }, [])
+  );
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <ScrollView style={styles.scrollView}>
-          <View style={styles.header}>
-            <Image
-              source={icon} // Replace with your image path
-              style={styles.logo}
-            />
-          </View>
-
-          <View style={styles.reservationSection}>
-            <Text style={styles.reservationTitle}>מסך בית</Text>
-            <View style={styles.reservationCard}>
-              <View style={styles.reservationDetails}>
-                <Text>הזמנה שלי היום</Text>
-                <Text>9:00שעת התחלה: </Text>
-                <Text>13:00שעת סיום: </Text>
-                <Text>AO1: עירוב</Text>
-                <Text>23/04/24:תאריך</Text>
+          {reservations.length > 0 ? (
+            <>
+              <View style={styles.header}>
+                <Text style={styles.headerTitle}>הזמנות להיום</Text>
               </View>
-              <TouchableOpacity style={styles.button}>
-                <Text style={styles.buttonText}>צפייה בהזמנה</Text>
-              </TouchableOpacity>
+
+              {reservations.map((reservation, index) => (
+                <View key={index} style={styles.reservationCard}>
+                  <View style={styles.reservationDetails}>
+                    <View style={styles.statusIcon}>
+                      <Icon
+                        name={
+                          reservation.reservationStatus !== "הזמנה בהמתנה"
+                            ? "checkmark-circle-outline"
+                            : "help-circle-outline"
+                        }
+                        type="ionicon"
+                        color={getStatusStyle(reservation.reservationStatus)}
+                      />
+                    </View>
+                    <Text style={styles.parkingNameHeader}>
+                      {reservation.parkName}
+                    </Text>
+                    {reservation.markName && (
+                      <Text style={styles.markNameHeader}>
+                        חנייה מס': {reservation.markName}
+                      </Text>
+                    )}
+                    <Text>שעת התחלה: {reservation.reservation_STime}</Text>
+                    <Text>שעת סיום: {reservation.reservation_ETime}</Text>
+                    <Text>{reservation.reservationDate.toLocaleString()}</Text>
+                  </View>
+                </View>
+              ))}
+            </>
+          ) : (
+            <View style={styles.header}>
+              <Text style={styles.headerTitle}>אין הזמנות להיום</Text>
             </View>
-          </View>
+          )}
         </ScrollView>
         <NavBar />
       </View>
@@ -47,54 +93,48 @@ const MainScreen = () => {
 
 const styles = StyleSheet.create({
   safeArea: {
-    flex: 1, // Fills the entire screen space
+    flex: 1,
     backgroundColor: "#f5f5f5",
-    // or your desired background color for the safe area
   },
   container: {
-    flex: 1, // Ensures that the container takes up all available space
+    flex: 1,
   },
   scrollView: {
-    flex: 1, // Ensures that the ScrollView takes up all available space
-    // Your other styles for the ScrollView
+    flex: 1,
   },
   header: {
     alignItems: "center",
     marginVertical: 20,
   },
-  logo: {
-    width: 100,
-    height: 50,
-    resizeMode: "contain", // or 'cover'
-  },
-  menu: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    paddingVertical: 10,
-  },
-  menuItem: {
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 10,
-  },
-  reservationSection: {
-    paddingHorizontal: 20,
-  },
-  reservationTitle: {
-    fontSize: 22,
+  parkingNameHeader: {
+    fontSize: 20,
     fontWeight: "bold",
-    textAlign: "center",
-    marginVertical: 10,
+    alignSelf: "center",
+    position: "absolute",
+  },
+  markNameHeader: {
+    alignSelf: "center",
+    fontWeight: "600",
+    fontSize: 14,
+    margin: 7,
+  },
+  headerTitle: {
+    marginLeft: 10,
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  statusIcon: {
+    fontSize: 20,
+    alignItems: "flex-start",
   },
   reservationCard: {
     backgroundColor: "#ffffff",
     borderRadius: 10,
     padding: 15,
+    marginHorizontal: 20,
+    marginBottom: 20,
     shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.22,
     shadowRadius: 2.22,
     elevation: 3,
@@ -102,15 +142,36 @@ const styles = StyleSheet.create({
   reservationDetails: {
     marginBottom: 10,
   },
-  button: {
-    backgroundColor: "#007bff",
-    padding: 15,
-    borderRadius: 5,
+  logo: {
+    width: 100,
+    height: 50,
+    resizeMode: "contain",
+  },
+  modalContent: {
+    backgroundColor: "white",
+    padding: 20,
+    borderRadius: 10,
     alignItems: "center",
   },
-  buttonText: {
-    color: "#ffffff",
-    fontWeight: "bold",
+  modalText: {
+    fontSize: 18,
+    marginBottom: 20,
+  },
+  modalButtonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "80%",
+  },
+  modalButton: {
+    backgroundColor: "#2196F3",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    margin: 10,
+  },
+  modalButtonText: {
+    color: "#fff",
+    fontSize: 16,
   },
 });
 

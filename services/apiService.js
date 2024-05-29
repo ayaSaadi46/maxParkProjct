@@ -1,22 +1,21 @@
 import axios from "axios";
 
-const baseUrl = `http://10.0.2.2:7157`;
+const baseUrl = `https://proj.ruppin.ac.il/cgroup68/test2/tar1`;
 
 export const login = async (formData) => {
   const fullUrl = `${baseUrl}/Users/LogIn`;
   try {
     const response = await axios.post(fullUrl, formData);
-    console.log(response);
     if (response.data) {
       return response.data.name;
     } else {
-      // Handle the case where `name` might not be part of the response
+      // טפל במקרה שבו ייתכן ש'שם' אינו חלק מהתגובה
       console.error("Username is not present in the response:", response);
-      return null; // Consider what default or error value makes sense for your application
+      return null;
     }
   } catch (error) {
     console.error("Failed to fetch username:", error);
-    return null; // Returning null, could rethrow the error or handle differently depending on your error handling strategy
+    return null;
   }
 };
 
@@ -28,7 +27,7 @@ export const getAllReservations = async () => {
     return response.data;
   } catch (error) {
     console.error("Failed to fetch getAllReservations:", error);
-    return null; // Returning null, could rethrow the error or handle differently depending on your error handling strategy
+    return null;
   }
 };
 
@@ -40,7 +39,7 @@ export const getAllReservationsByUserId = async (userId) => {
     return response.data;
   } catch (error) {
     console.error("Failed to fetch getAllReservations:", error);
-    return null; // Returning null, could rethrow the error or handle differently depending on your error handling strategy
+    return null;
   }
 };
 
@@ -52,6 +51,48 @@ export const getUserById = async (userId) => {
     return response.data;
   } catch (error) {
     console.error("Failed to fetch getAllReservations:", error);
-    return null; // Returning null, could rethrow the error or handle differently depending on your error handling strategy
+    return null;
   }
+};
+export const updateUserDetails = async (userDataToUpdate) => {
+  try {
+    const response = await axios.put(
+      `${baseUrl}/api/Users/updateUserDetails`,
+      userDataToUpdate
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error updating user details:", error);
+    throw error;
+  }
+};
+export const deleteReservation = (reservationId) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const url = `${baseUrl}/api/reservasions/reservationId?reservationId=${reservationId}`;
+      const response = await fetch(url, { method: "DELETE" });
+
+      if (response.ok) {
+        console.log("Reservation deleted successfully");
+        resolve({ success: true, message: "Reservation deleted successfully" });
+      } else {
+        const errorData = await response.text();
+        console.error(
+          "Failed to delete reservation:",
+          response.status,
+          errorData
+        );
+        reject({
+          success: false,
+          message: `Failed to delete reservation: ${errorData}`,
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting reservation:", error);
+      reject({
+        success: false,
+        message: `Error deleting reservation: ${error.message}`,
+      });
+    }
+  });
 };

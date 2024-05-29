@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -7,12 +7,16 @@ import {
   TouchableOpacity,
   Image,
   SafeAreaView,
+  Alert,
 } from "react-native";
+import Modal from "react-native-modal";
 import NavBar from "./NavBar";
-import icon from "../assets/icon.png";
 import { Icon } from "react-native-elements";
-import { useNavigation } from "@react-navigation/native";
-import { getAllReservationsByUserId } from "../services/apiService";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import {
+  deleteReservation,
+  getAllReservationsByUserId,
+} from "../services/apiService";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Reservations = () => {
@@ -20,15 +24,57 @@ const Reservations = () => {
   const [filteredReservations, setFilteredReservations] = useState([]);
   const [selectedFilter, setSelectedFilter] = useState("all");
   const navigation = useNavigation();
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [activeReservationId, setActiveReservationId] = useState(null);
 
+  const toggleModal = (reservationId) => {
+    setActiveReservationId(reservationId);
+    setModalVisible(!isModalVisible);
+  };
+
+  const handleReleaseParking = async () => {
+    try {
+      await deleteReservation(activeReservationId)
+        .then(() => {
+          setModalVisible(false);
+          setTimeout(() => {
+            Alert.alert("ביטול הזמנה", "ההזמנה בוטלה בהצלחה", [
+              {
+                text: "אישור",
+                onPress: () => navigation.navigate("MainScreen"),
+              },
+            ]);
+          }, 500);
+        })
+        .catch(() => {
+          throw new Error("Failed to release parking");
+        });
+    } catch (error) {
+      Alert.alert("שגיאה", "אירעה שגיאה בשחרור החנייה. נסה שוב.");
+    }
+  };
   const handleFilterSelect = (filter) => {
     setSelectedFilter(filter);
   };
 
   const getFilterButtonStyle = (filter) => {
-    return filter === selectedFilter
+    let translatedFilter = "all";
+    if (selectedFilter === "אישור") translatedFilter = "confirmed";
+    else if (selectedFilter === "הזמנה בהמתנה") translatedFilter = "pending";
+
+    return filter === translatedFilter
       ? styles.selectedFilterButton
       : styles.filterButton;
+  };
+
+  const getFilterTextStyle = (filter) => {
+    let translatedFilter = "all";
+    if (selectedFilter === "אישור") translatedFilter = "confirmed";
+    else if (selectedFilter === "הזמנה בהמתנה") translatedFilter = "pending";
+
+    return filter === translatedFilter
+      ? styles.selectedFilterText
+      : styles.filterText;
   };
 
   const getStatusStyle = (status) => {
@@ -48,24 +94,28 @@ const Reservations = () => {
     setFilteredReservations(tempFilter);
   }, [selectedFilter]);
 
-  useEffect(() => {
-    const fetchReservations = async () => {
-      const userId = await AsyncStorage.getItem("userId");
-      if (userId) {
-        const reservations = await getAllReservationsByUserId(userId);
-        reservations.map(
-          (reservation) =>
-            (reservation.reservationDate = new Date(
-              reservation.reservation_Date
-            ))
-        );
-        setReservations(reservations);
-        setFilteredReservations(reservations);
-      }
-    };
+  useFocusEffect(
+    useCallback(() => {
+      const fetchReservations = async () => {
+        const userId = await AsyncStorage.getItem("userId");
+        if (userId) {
+          const reservations = await getAllReservationsByUserId(userId);
+          reservations.map(
+            (reservation) =>
+              (reservation.reservationDate = new Date(
+                reservation.reservation_Date
+              ))
+          );
+          setReservations(reservations);
+          setFilteredReservations(reservations);
+        }
+      };
 
-    fetchReservations();
-  }, []);
+      fetchReservations();
+    }, [])
+  );
+
+  useEffect(() => {}, []);
 
   return (
     <>
@@ -73,34 +123,27 @@ const Reservations = () => {
         <View style={styles.container}>
           <ScrollView style={styles.scrollView}>
             <View style={styles.header}>
-              <Image
-                source={icon} // Replace with your image path
-                style={styles.logo}
-              />
-            </View>
-
-            <View style={styles.header}>
               <Text style={styles.headerTitle}>ההזמנות שלי</Text>
             </View>
 
             <View style={styles.filterButtons}>
               <TouchableOpacity
                 style={getFilterButtonStyle("confirmed")}
-                onPress={() => handleFilterSelect("confirmed")}
+                onPress={() => handleFilterSelect("אישור")}
               >
-                <Text style={styles.filterText}>אושרו</Text>
+                <Text style={getFilterTextStyle("confirmed")}>אושרו</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={getFilterButtonStyle("pending")}
-                onPress={() => handleFilterSelect("pending")}
+                onPress={() => handleFilterSelect("הזמנה בהמתנה")}
               >
-                <Text style={styles.filterText}>בהמתנה</Text>
+                <Text style={getFilterTextStyle("pending")}>בהמתנה</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={getFilterButtonStyle("all")}
                 onPress={() => handleFilterSelect("all")}
               >
-                <Text style={styles.filterText}>כולם</Text>
+                <Text style={getFilterTextStyle("all")}>הכל</Text>
               </TouchableOpacity>
             </View>
 
@@ -137,7 +180,12 @@ const Reservations = () => {
                   </Text>
                 </View>
                 {filteredReservation.reservationStatus === "הזמנה בהמתנה" ? (
-                  <TouchableOpacity style={styles.button}>
+                  <TouchableOpacity
+                    onPress={() =>
+                      toggleModal(filteredReservation.reservationId)
+                    }
+                    style={styles.button}
+                  >
                     <Text style={styles.buttonText}>ביטול חנייה</Text>
                   </TouchableOpacity>
                 ) : (
@@ -160,6 +208,27 @@ const Reservations = () => {
               </View>
             ))}
           </ScrollView>
+          <Modal isVisible={isModalVisible}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalText}>
+                האם אתה בטוח שברצונך לבטל ההזמנה?
+              </Text>
+              <View style={styles.modalButtonContainer}>
+                <TouchableOpacity
+                  style={styles.modalButton}
+                  onPress={toggleModal}
+                >
+                  <Text style={styles.modalButtonText}>ביטול</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.modalButton}
+                  onPress={handleReleaseParking}
+                >
+                  <Text style={styles.modalButtonText}>אישור</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
           <NavBar />
         </View>
       </SafeAreaView>
@@ -223,6 +292,7 @@ const styles = StyleSheet.create({
   filterButton: {
     padding: 10,
     borderWidth: 2,
+    color: "white",
     borderColor: "#0056b3",
     color: "#0056b3",
     borderRadius: 20,
@@ -243,7 +313,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
   },
   filterText: {
-    color: "inherit",
+    color: "black",
   },
   reservationCard: {
     backgroundColor: "#ffffff",
@@ -288,6 +358,35 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#ffffff",
     fontWeight: "bold",
+  },
+  selectedFilterText: {
+    color: "white",
+  },
+  modalContent: {
+    backgroundColor: "white",
+    padding: 20,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  modalText: {
+    fontSize: 18,
+    marginBottom: 20,
+  },
+  modalButtonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "80%",
+  },
+  modalButton: {
+    backgroundColor: "#2196F3",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    margin: 10,
+  },
+  modalButtonText: {
+    color: "#fff",
+    fontSize: 16,
   },
 });
 

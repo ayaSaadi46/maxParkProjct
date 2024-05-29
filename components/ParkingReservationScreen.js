@@ -11,8 +11,8 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import RNPickerSelect from "react-native-picker-select";
 import CalendarPicker from "react-native-calendar-picker";
 import { getUserById } from "../services/apiService";
-import Header from "./Header";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import GoBack from "./GoBack";
 
 const ParkingReservationScreen = ({ onReservationConfirm }) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -29,7 +29,6 @@ const ParkingReservationScreen = ({ onReservationConfirm }) => {
         const userId = await AsyncStorage.getItem("userId");
         if (userId !== null) {
           const user = await getUserById(userId);
-          console.log(user);
           setUser(user);
         }
       } catch (err) {
@@ -46,31 +45,27 @@ const ParkingReservationScreen = ({ onReservationConfirm }) => {
     }
   };
   const handleAddReservation = async () => {
-    // Assuming parkId and markId are derived from selectedParkingLot or other parts of your app
-    const parkId = selectedParkingLot === "parkingLotA" ? 1 : 2; // Example transformation
-    const markId = 0; // Static or derived
+    const parkId = selectedParkingLot === "parkingLotA" ? 1 : 2;
+    const markId = 0;
 
-    // Formatting the date and time into a string acceptable for your backend
     const reservationDate = selectedDate.toISOString().slice(0, 10);
     const formattedStartTime = startTime.toISOString().slice(11, 19);
     const formattedEndTime = endTime.toISOString().slice(11, 19);
 
     const data = JSON.stringify({
-      reservationId: 0, // Assuming this is auto-generated
-      //userId: parseInt(usernametest),
+      reservationId: 0,
       userId: user.userId,
-      // parkId: parkId,
       parkId: 3,
       reservation_Date: reservationDate,
       reservation_STime: formattedStartTime,
       reservation_ETime: formattedEndTime,
-      reservation_Status: "הזמנה בהמתנה", // Default status, change as needed
+      reservation_Status: "הזמנה בהמתנה",
       markId: markId,
     });
 
     try {
       const response = await fetch(
-        "http://10.0.2.2:7157/api/Reservasions/newReservation",
+        "https://proj.ruppin.ac.il/cgroup68/test2/tar1/api/Reservasions/newReservation",
         {
           method: "POST",
           headers: {
@@ -81,14 +76,14 @@ const ParkingReservationScreen = ({ onReservationConfirm }) => {
       );
       const jsonResponse = await response.json();
       if (response.ok) {
-        alert("Reservation added successfully!");
+        alert("ההזמנה בוצעה בהצלחה!");
         console.log("Reservation added successfully:", jsonResponse);
       } else {
         throw new Error("Failed to add reservation");
       }
     } catch (error) {
       console.error("Error adding reservation:", error);
-      alert("Failed to add reservation. Please try again.");
+      alert("שגיאה בביצוע  ההזמנה . נסה שוב");
     }
   };
 
@@ -110,7 +105,7 @@ const ParkingReservationScreen = ({ onReservationConfirm }) => {
 
   return (
     <ScrollView style={styles.container}>
-      <Header />
+      <GoBack></GoBack>
       <View style={styles.content}>
         <Text style={styles.label}>בחר תאריך:</Text>
         <CalendarPicker
@@ -132,30 +127,6 @@ const ParkingReservationScreen = ({ onReservationConfirm }) => {
         />
         <View style={styles.timeContainer}>
           <View style={styles.timePickerContainer}>
-            <Text style={styles.label}>שעת התחלה</Text>
-            {!showStartTimePicker && (
-              <TouchableOpacity onPress={() => setShowStartTimePicker(true)}>
-                <Text style={styles.timeText}>
-                  {startTime.toLocaleTimeString("he-IL")}
-                </Text>
-              </TouchableOpacity>
-            )}
-            {showStartTimePicker && (
-              <DateTimePicker
-                value={startTime}
-                mode="time"
-                display="default"
-                is24Hour={true}
-                onChange={(event, selectedTime) => {
-                  if (event.type === "set" && selectedTime) {
-                    setStartTime(selectedTime);
-                  }
-                  setShowStartTimePicker(false);
-                }}
-              />
-            )}
-          </View>
-          <View style={styles.timePickerContainer}>
             <Text style={styles.label}>שעת סיום</Text>
             {!showEndTimePicker && (
               <TouchableOpacity onPress={() => setShowEndTimePicker(true)}>
@@ -175,6 +146,30 @@ const ParkingReservationScreen = ({ onReservationConfirm }) => {
                     setEndTime(selectedTime);
                   }
                   setShowEndTimePicker(false);
+                }}
+              />
+            )}
+          </View>
+          <View style={styles.timePickerContainer}>
+            <Text style={styles.label}>שעת התחלה</Text>
+            {!showStartTimePicker && (
+              <TouchableOpacity onPress={() => setShowStartTimePicker(true)}>
+                <Text style={styles.timeText}>
+                  {startTime.toLocaleTimeString("he-IL")}
+                </Text>
+              </TouchableOpacity>
+            )}
+            {showStartTimePicker && (
+              <DateTimePicker
+                value={startTime}
+                mode="time"
+                display="default"
+                is24Hour={true}
+                onChange={(event, selectedTime) => {
+                  if (event.type === "set" && selectedTime) {
+                    setStartTime(selectedTime);
+                  }
+                  setShowStartTimePicker(false);
                 }}
               />
             )}
@@ -201,6 +196,8 @@ const styles = StyleSheet.create({
   },
   timePickerContainer: {
     flex: 1,
+    marginLeft: 6,
+    marginRight: 6,
   },
   container: {
     flex: 1,

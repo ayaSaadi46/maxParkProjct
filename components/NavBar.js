@@ -5,7 +5,7 @@ import { useNavigation } from "@react-navigation/native";
 
 const NavBar = () => {
   const navigation = useNavigation();
-  const [parkingActive, setParkingActive] = useState(false); // State to track if parking is active
+  const [parkingActive, setParkingActive] = useState(false);
 
   const goToUserProfile = () => navigation.navigate("Profile");
   const goToHistory = () => navigation.navigate("MainScreen");
@@ -20,7 +20,7 @@ const NavBar = () => {
   return (
     <View style={styles.navbarContainer}>
       <TouchableOpacity onPress={goToHistory} style={styles.navItem}>
-        <Icon name="home" size={24} color="#4F8EF7" />
+        <Icon name="home" size={24} color="#007bff" />
         <Text style={styles.navText}>עמוד הבית</Text>
       </TouchableOpacity>
 
@@ -28,7 +28,7 @@ const NavBar = () => {
         onPress={goToPayments}
         style={[styles.navItem, styles.navItemLeftMargin]}
       >
-        <Icon name="inbox" size={24} color="#4F8EF7" />
+        <Icon name="inbox" size={24} color="#007bff" />
         <Text style={styles.navText}>הזמנות שלי</Text>
       </TouchableOpacity>
 
@@ -48,13 +48,13 @@ const NavBar = () => {
         <Icon
           name="car"
           size={24}
-          color={parkingActive ? "#4F8EF7" : "#a1a1a1"}
+          color={parkingActive ? "#007bff" : "#a1a1a1"}
         />
         <Text style={styles.navText}>חניון פעיל</Text>
       </TouchableOpacity>
 
       <TouchableOpacity onPress={goToUserProfile} style={styles.navItem}>
-        <Icon name="user" size={24} color="#4F8EF7" />
+        <Icon name="user" size={24} color="#007bff" />
         <Text style={styles.navText}>פרופיל משתמש</Text>
       </TouchableOpacity>
     </View>
@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 20, // Increased padding for larger height
+    paddingVertical: 20,
     elevation: 10,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: -1 },
@@ -85,38 +85,38 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   navItemLeftMargin: {
-    marginRight: 40, // Adding space to the right of the left icon
+    marginRight: 40,
   },
   navItemRightMargin: {
-    marginLeft: 40, // Adding space to the left of the right icon
+    marginLeft: 40,
   },
   navText: {
-    color: "#4F8EF7",
+    color: "#007bff",
     fontSize: 12,
     marginTop: 5,
     textAlign: "center",
   },
   circularButtonWrapper: {
     position: "absolute",
-    bottom: 30, // Moved higher than previously
+    bottom: 30,
     left: "50%",
     transform: [{ translateX: -50 }],
     zIndex: 10,
   },
   outerCircle: {
-    width: 100, // Larger outer circle
+    width: 100,
     height: 100,
     borderRadius: 50,
     backgroundColor: "#e6f0fa",
     justifyContent: "center",
     alignItems: "center",
-    padding: 15, // Padding to fit inner circle
+    padding: 15,
   },
   circularButton: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: "#4F8EF7",
+    backgroundColor: "#007bff",
     justifyContent: "center",
     alignItems: "center",
     elevation: 10,

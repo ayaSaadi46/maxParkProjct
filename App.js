@@ -1,4 +1,3 @@
-import { StyleSheet, View } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import LoginScreen from "./components/Login";
@@ -8,6 +7,7 @@ import ParkingLot from "./components/ParkingLot";
 import ParkingPage from "./components/ParkingPage";
 import Reservations from "./components/Reservations";
 import Profile from "./components/Profile";
+import Header from "./components/Header";
 
 const Stack = createNativeStackNavigator();
 
@@ -16,52 +16,59 @@ export default function App() {
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Login">
         <Stack.Screen
-          options={{ headerShown: false }}
           name="MainScreen"
           component={MainScreen}
+          options={{
+            header: () => <Header />, // Assuming Header is a component you want to render
+            headerShown: true,
+          }}
         />
         <Stack.Screen
-          options={{ headerShown: false }}
           name="Login"
           component={LoginScreen}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
-          options={{ headerShown: false }}
           name="Profile"
           component={Profile}
+          options={{
+            header: () => <Header />,
+            headerShown: true,
+          }}
         />
         <Stack.Screen
-          options={{ headerShown: false }}
           name="ParkingPage"
           component={ParkingPage}
+          options={{
+            header: () => <Header />,
+            headerShown: true,
+          }}
         />
-
         <Stack.Screen
-          options={{ headerShown: false }}
           name="ParkingReservationScreen"
           component={ParkingReservationScreen}
+          options={{
+            header: () => <Header />,
+            headerShown: true,
+          }}
         />
         <Stack.Screen
-          options={{ headerShown: false }}
           name="Reservations"
           component={Reservations}
+          options={{
+            header: () => <Header />,
+            headerShown: true,
+          }}
         />
-
         <Stack.Screen
-          options={{ headerShown: false }}
           name="ParkingLot"
           component={ParkingLot}
+          options={{
+            header: () => <Header />,
+            headerShown: true,
+          }}
         />
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});

@@ -14,23 +14,28 @@ import { Ionicons } from "@expo/vector-icons";
 import avatar from "../assets/avatar.png";
 import { useNavigation } from "@react-navigation/native";
 import { getUserById } from "../services/apiService";
+import { updateUserDetails } from "../services/apiService";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import NavBar from "./NavBar";
 
 const Profile = () => {
   const navigation = useNavigation();
   const [userData, setUserData] = useState({
-    email: "jbowen@gmail.com",
-    userFirstName: "James",
-    userLastName: "Bowen",
-    userCarNum: "1234-ABC",
-    userPhone: "+67234567890",
+    UserPassword: "",
+    email: "",
+    userFirstName: "",
+    userLastName: "",
+    userCarNum: "",
+    userPhone: "",
+    isAdmin: true,
+    isManager: true,
   });
 
   useEffect(() => {
     const fetchUserData = async () => {
       const userId = await AsyncStorage.getItem("userId");
       if (userId !== null) {
-        const user = await getUserById(userId); // Make sure you have defined getUserById
+        const user = await getUserById(userId);
         setUserData(user);
       }
     };
@@ -40,8 +45,8 @@ const Profile = () => {
 
   const handleLogout = async () => {
     try {
-      await AsyncStorage.clear(); // Clears all AsyncStorage data
-      navigation.navigate("Login"); // Navigates to Login screen
+      await AsyncStorage.clear();
+      navigation.navigate("Login");
     } catch (error) {
       Alert.alert("Error", "Failed to log out. Please try again.");
     }
@@ -54,8 +59,27 @@ const Profile = () => {
     });
   };
 
-  const handleSave = () => {
-    console.log("User data saved:", userData);
+  const handleSave = async () => {
+    const userId = await AsyncStorage.getItem("userId");
+    if (userId) {
+      try {
+        const userDataToUpdate = {
+          ...userData,
+          userId,
+        };
+        const updatedUser = await updateUserDetails(userDataToUpdate);
+        console.log("User data updated:", updatedUser);
+        Alert.alert("הצלחה", " !העדכון בוצע בהצלחה ");
+      } catch (error) {
+        if (error.response) {
+          console.log("Error response data:", error.response.data); // מידע נוסף על השגיאה
+          console.log("Error response status:", error.response.status); // קוד השגיאה
+        } else {
+          console.log("Error message:", error.message); // הודעת שגיאה כללית
+        }
+        Alert.alert("שגיאה", "עדכון נתוני המשתמש נכשל. נסה שוב");
+      }
+    }
   };
 
   const handleImageUpload = async () => {
@@ -63,7 +87,7 @@ const Profile = () => {
       await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (permissionResult.granted === false) {
-      alert("Permission to access camera roll is required!");
+      alert("נדרשת הרשאת גישה לגלריה !");
       return;
     }
 
@@ -83,7 +107,7 @@ const Profile = () => {
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
 
     if (permissionResult.granted === false) {
-      alert("Permission to access camera is required!");
+      alert("נדרשת הרשאת גישה למצלמה!");
       return;
     }
 
@@ -100,12 +124,12 @@ const Profile = () => {
 
   const handleImagePress = () => {
     Alert.alert(
-      "Upload Image",
-      "Choose an option",
+      "עדכון תמונה",
+      "בחר מהאפשריות",
       [
-        { text: "Cancel", style: "cancel" },
-        { text: "Choose from Gallery", onPress: handleImageUpload },
-        { text: "Take Photo", onPress: handleTakePhoto },
+        { text: "ביטול", style: "cancel" },
+        { text: "בחר מהגלריה", onPress: handleImageUpload },
+        { text: "צלם תמונה", onPress: handleTakePhoto },
       ],
       { cancelable: true }
     );
@@ -142,7 +166,6 @@ const Profile = () => {
       </View>
       <View style={styles.infoContainer}>
         <Text style={styles.infoLabel}>פרופיל</Text>
-        <Text style={styles.editText}>לעדכן </Text>
       </View>
       {[
         { label: "מייל", name: "email", value: userData.email },
@@ -171,6 +194,7 @@ const Profile = () => {
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Text style={styles.logoutText}>יציאה</Text>
       </TouchableOpacity>
+      <NavBar></NavBar>
     </ScrollView>
   );
 };
@@ -224,10 +248,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
   },
-  editText: {
-    fontSize: 14,
-    color: "#007BFF",
-  },
+
   fieldContainer: {
     marginBottom: 15,
   },
@@ -271,5 +292,4 @@ const styles = StyleSheet.create({
     color: "#FF0000",
   },
 });
-
 export default Profile;

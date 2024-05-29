@@ -4,6 +4,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { CircularProgress } from "react-native-circular-progress";
 import Modal from "react-native-modal";
 import NavBar from "./NavBar";
+import { deleteReservation } from "../services/apiService";
 
 const ParkingPage = () => {
   const [remainingTime, setRemainingTime] = useState(0);
@@ -53,19 +54,21 @@ const ParkingPage = () => {
 
   const handleReleaseParking = async () => {
     try {
-      const response = await fetch(
-        `http://10.0.2.2:7157/api/Reservasions/reservationId?reservationId=${reservation.reservationId}`,
-        { method: "DELETE" }
-      );
-      if (!response.ok) {
-        throw new Error("Failed to release parking");
-      }
-      setModalVisible(false);
-      setTimeout(() => {
-        Alert.alert("החנייה שוחררה", "החנייה שוחררה בהצלחה", [
-          { text: "אישור", onPress: () => navigation.navigate("MainScreen") },
-        ]);
-      }, 500);
+      await deleteReservation(reservation.reservationId)
+        .then(() => {
+          setModalVisible(false);
+          setTimeout(() => {
+            Alert.alert("החנייה שוחררה", "החנייה שוחררה בהצלחה", [
+              {
+                text: "אישור",
+                onPress: () => navigation.navigate("MainScreen"),
+              },
+            ]);
+          }, 500);
+        })
+        .catch(() => {
+          throw new Error("Failed to release parking");
+        });
     } catch (error) {
       Alert.alert("שגיאה", "אירעה שגיאה בשחרור החנייה. נסה שוב.");
     }
@@ -110,11 +113,13 @@ const ParkingPage = () => {
         <TouchableOpacity style={styles.blueButton}>
           <Text style={styles.buttonText}>הארכת זמן חנייה</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.blueButton} onPress={toggleModal}>
-          <Text style={styles.buttonText}>שחרור חנייה</Text>
-        </TouchableOpacity>
         <TouchableOpacity style={styles.redButton}>
           <Text style={styles.buttonText}>מישהו חוסם אותי</Text>
+        </TouchableOpacity>
+      </View>
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.largeButton} onPress={toggleModal}>
+          <Text style={styles.buttonText}>שחרור חנייה</Text>
         </TouchableOpacity>
       </View>
       <Modal isVisible={isModalVisible}>
@@ -135,7 +140,6 @@ const ParkingPage = () => {
           </View>
         </View>
       </Modal>
-
       <NavBar />
     </View>
   );
@@ -147,6 +151,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#fff",
+    paddingBottom: 60,
   },
   timerText: {
     fontSize: 24,
@@ -174,26 +179,41 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   buttonContainer: {
-    marginTop: 20,
-    width: "80%",
-    alignItems: "center",
-  },
-  blueButton: {
-    backgroundColor: "#2196F3",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "90%",
     marginBottom: 10,
   },
+  blueButton: {
+    flex: 1,
+    backgroundColor: "#007bff",
+    paddingVertical: 15,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    marginHorizontal: 5,
+    alignItems: "center",
+  },
   redButton: {
-    backgroundColor: "#f44336",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
+    flex: 1,
+    backgroundColor: "#dc3545",
+    paddingVertical: 15,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    marginHorizontal: 5,
+    alignItems: "center",
+  },
+  largeButton: {
+    backgroundColor: "#007bff",
+    paddingVertical: 15,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    alignItems: "center",
+    width: "90%",
   },
   buttonText: {
-    color: "#fff",
+    color: "#ffffff",
     fontSize: 16,
+    fontWeight: "bold",
   },
   modalContent: {
     backgroundColor: "white",

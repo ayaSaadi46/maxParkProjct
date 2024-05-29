@@ -45,7 +45,7 @@ const LoginScreen = () => {
       body: JSON.stringify(formData),
     };
 
-    const url = `http://10.0.2.2:7157/api/Users/LogIn`;
+    const url = `https://proj.ruppin.ac.il/cgroup68/test2/tar1/api/Users/LogIn`;
 
     try {
       const response = await fetch(url, requestOptions);

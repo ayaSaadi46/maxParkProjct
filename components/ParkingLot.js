@@ -59,7 +59,7 @@ const ParkingPage = () => {
     try {
       // קריאה ל-API כדי למחוק את ההזמנה מהשרת
       await fetch(
-        `http://10.0.2.2:7157/api/Reservasions/reservationId?reservationId=${reservation.reservationId}`,
+        `https://proj.ruppin.ac.il/cgroup68/test2/tar1/api/Reservasions/reservationId?reservationId=${reservation.reservationId}`,
         {
           method: "DELETE",
         }
