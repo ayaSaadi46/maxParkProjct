@@ -13,7 +13,7 @@ const NavBar = () => {
   const goToPayments = () => navigation.navigate("Reservations");
   const goToActiveParking = () => {
     if (parkingActive) {
-      navigation.navigate("ParkingPage");
+      navigation.navigate("ParkingLot");
     }
   };
 

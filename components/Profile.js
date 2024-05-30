@@ -8,6 +8,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  SafeAreaView,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
@@ -64,18 +65,25 @@ const Profile = () => {
     if (userId) {
       try {
         const userDataToUpdate = {
-          ...userData,
-          userId,
+          userId: parseInt(userId, 10), // המרה של userId למספר
+          userEmail: userData.email,
+          userPassword: "", // נראה שזה לא משתנה אבל צריך לשלוח אותו אם השרת דורש
+          userName: userData.userFirstName,
+          userLastName: userData.userLastName,
+          userCarNum: userData.userCarNum,
+          userPhone: userData.userPhone,
+          isAdmin: userData.isAdmin, // נראה שזה גם לא משתנה אבל צריך להישלח
+          isManager: userData.isManager, // נראה שזה גם לא משתנה אבל צריך להישלח
         };
         const updatedUser = await updateUserDetails(userDataToUpdate);
         console.log("User data updated:", updatedUser);
-        Alert.alert("הצלחה", " !העדכון בוצע בהצלחה ");
+        Alert.alert("הצלחה", "העדכון בוצע בהצלחה!");
       } catch (error) {
         if (error.response) {
-          console.log("Error response data:", error.response.data); // מידע נוסף על השגיאה
-          console.log("Error response status:", error.response.status); // קוד השגיאה
+          console.log("Error response data:", error.response.data);
+          console.log("Error response status:", error.response.status);
         } else {
-          console.log("Error message:", error.message); // הודעת שגיאה כללית
+          console.log("Error message:", error.message);
         }
         Alert.alert("שגיאה", "עדכון נתוני המשתמש נכשל. נסה שוב");
       }
@@ -136,66 +144,68 @@ const Profile = () => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.profileHeader}>
-        <TouchableOpacity onPress={handleImagePress}>
-          <View style={styles.imageContainer}>
-            <Image
-              source={avatar}
-              onError={(e) => {
-                console.error("Failed to load image", e);
-                setUserData({
-                  ...userData,
-                  ImageUrl: Image.resolveAssetSource(avatar).uri,
-                });
-              }}
-              style={styles.profileImage}
-            />
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.profileHeader}>
+          <TouchableOpacity onPress={handleImagePress}>
+            <View style={styles.imageContainer}>
+              <Image
+                source={avatar}
+                onError={(e) => {
+                  console.error("Failed to load image", e);
+                  setUserData({
+                    ...userData,
+                    ImageUrl: Image.resolveAssetSource(avatar).uri,
+                  });
+                }}
+                style={styles.profileImage}
+              />
 
-            <Ionicons
-              name="camera"
-              size={24}
-              color="black"
-              style={styles.cameraIcon}
-            />
-          </View>
-        </TouchableOpacity>
-        <Text
-          style={styles.profileName}
-        >{`${userData.userFirstName} ${userData.userLastName}`}</Text>
-      </View>
-      <View style={styles.infoContainer}>
-        <Text style={styles.infoLabel}>פרופיל</Text>
-      </View>
-      {[
-        { label: "מייל", name: "email", value: userData.email },
-        { label: "מספר טלפון", name: "userPhone", value: userData.userPhone },
-        {
-          label: "מספר רכב",
-          name: "userCarNum",
-          value: userData.userCarNum,
-        },
-      ].map((field) => (
-        <View key={field.name} style={styles.fieldContainer}>
-          <Text style={styles.label}>{field.label}</Text>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder={field.label}
-              value={field.value}
-              onChangeText={(text) => handleChange(field.name, text)}
-            />
-          </View>
+              <Ionicons
+                name="camera"
+                size={24}
+                color="black"
+                style={styles.cameraIcon}
+              />
+            </View>
+          </TouchableOpacity>
+          <Text
+            style={styles.profileName}
+          >{`${userData.userFirstName} ${userData.userLastName}`}</Text>
         </View>
-      ))}
-      <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-        <Text style={styles.saveButtonText}>שמור</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Text style={styles.logoutText}>יציאה</Text>
-      </TouchableOpacity>
-      <NavBar></NavBar>
-    </ScrollView>
+        <View style={styles.infoContainer}>
+          <Text style={styles.infoLabel}>פרופיל</Text>
+        </View>
+        {[
+          { label: "מייל", name: "email", value: userData.email },
+          { label: "מספר טלפון", name: "userPhone", value: userData.userPhone },
+          {
+            label: "מספר רכב",
+            name: "userCarNum",
+            value: userData.userCarNum,
+          },
+        ].map((field) => (
+          <View key={field.name} style={styles.fieldContainer}>
+            <Text style={styles.label}>{field.label}</Text>
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                placeholder={field.label}
+                value={field.value}
+                onChangeText={(text) => handleChange(field.name, text)}
+              />
+            </View>
+          </View>
+        ))}
+        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+          <Text style={styles.saveButtonText}>שמור</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Text style={styles.logoutText}>יציאה</Text>
+        </TouchableOpacity>
+        <NavBar></NavBar>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
@@ -204,6 +214,11 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     padding: 20,
     backgroundColor: "#fff",
+    paddingBottom: 100,
+  },
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#f5f5f5",
   },
   profileHeader: {
     alignItems: "center",
