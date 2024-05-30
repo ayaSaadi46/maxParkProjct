@@ -37,6 +37,7 @@ const Profile = () => {
       const userId = await AsyncStorage.getItem("userId");
       if (userId !== null) {
         const user = await getUserById(userId);
+
         setUserData(user);
       }
     };
@@ -65,15 +66,15 @@ const Profile = () => {
     if (userId) {
       try {
         const userDataToUpdate = {
-          userId: parseInt(userId, 10), // המרה של userId למספר
+          userId: parseInt(userId, 10),
           userEmail: userData.email,
-          userPassword: "", // נראה שזה לא משתנה אבל צריך לשלוח אותו אם השרת דורש
+          userPassword: "",
           userName: userData.userFirstName,
           userLastName: userData.userLastName,
           userCarNum: userData.userCarNum,
           userPhone: userData.userPhone,
-          isAdmin: userData.isAdmin, // נראה שזה גם לא משתנה אבל צריך להישלח
-          isManager: userData.isManager, // נראה שזה גם לא משתנה אבל צריך להישלח
+          isAdmin: userData.isAdmin,
+          isManager: userData.isManager,
         };
         const updatedUser = await updateUserDetails(userDataToUpdate);
         console.log("User data updated:", updatedUser);

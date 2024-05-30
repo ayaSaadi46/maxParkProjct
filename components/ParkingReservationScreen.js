@@ -113,6 +113,7 @@ const ParkingReservationScreen = ({ onReservationConfirm }) => {
           minDate={today}
           maxDate={oneWeekFromToday}
           onDateChange={onDateChange}
+          selectedDayColor="#007bff"
         />
         <Text style={styles.label}>בחר חניון:</Text>
         <RNPickerSelect
@@ -143,7 +144,11 @@ const ParkingReservationScreen = ({ onReservationConfirm }) => {
                 is24Hour={true}
                 onChange={(event, selectedTime) => {
                   if (event.type === "set" && selectedTime) {
-                    setEndTime(selectedTime);
+                    if (selectedTime > startTime) {
+                      setEndTime(selectedTime);
+                    } else {
+                      alert("שעת הסיום צריכה להיות אחרי שעת ההתחלה.");
+                    }
                   }
                   setShowEndTimePicker(false);
                 }}
@@ -166,8 +171,13 @@ const ParkingReservationScreen = ({ onReservationConfirm }) => {
                 display="default"
                 is24Hour={true}
                 onChange={(event, selectedTime) => {
-                  if (event.type === "set" && selectedTime) {
-                    setStartTime(selectedTime);
+                  if (event.type === "set") {
+                    if (!endTime || selectedTime < endTime) {
+                      setStartTime(selectedTime);
+                      setShowStartTimePicker(false);
+                    } else {
+                      alert("שעת ההתחלה צריכה להיות לפני שעת הסיום.");
+                    }
                   }
                   setShowStartTimePicker(false);
                 }}
@@ -209,6 +219,7 @@ const styles = StyleSheet.create({
   label: {
     fontWeight: "bold",
     textAlign: "right",
+    fontSize: 15,
     marginBottom: 8,
   },
   timeText: {

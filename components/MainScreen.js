@@ -1,11 +1,19 @@
 import React, { useCallback, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, SafeAreaView } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  SafeAreaView,
+  Image,
+} from "react-native";
 import NavBar from "./NavBar";
 import { Icon } from "react-native-elements";
 import { useFocusEffect } from "@react-navigation/native";
 import { getAllReservationsByUserId } from "../services/apiService";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { startOfDay } from "date-fns";
+import parking from "../assets/parking.jpg";
 
 const MainScreen = () => {
   const [reservations, setReservations] = useState([]);
@@ -81,6 +89,7 @@ const MainScreen = () => {
             </>
           ) : (
             <View style={styles.header}>
+              <Image source={parking} style={styles.parking} />
               <Text style={styles.headerTitle}>אין הזמנות להיום</Text>
             </View>
           )}
@@ -94,7 +103,7 @@ const MainScreen = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "white",
   },
   container: {
     flex: 1,
@@ -120,12 +129,20 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     marginLeft: 10,
-    fontSize: 20,
+    fontSize: 25,
+    color: "#0466C9",
     fontWeight: "bold",
   },
   statusIcon: {
     fontSize: 20,
     alignItems: "flex-start",
+  },
+  parking: {
+    width: 800,
+    height: 300,
+    borderRadius: 30,
+    resizeMode: "contain",
+    marginBottom: 20,
   },
   reservationCard: {
     backgroundColor: "#ffffff",
