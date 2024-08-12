@@ -27,6 +27,24 @@ const Reservations = () => {
   const [isModalVisible, setModalVisible] = useState(false);
   const [activeReservationId, setActiveReservationId] = useState(null);
 
+  // Function to check if the current time is within the reservation time range
+  const isWithinReservationTime = (reservation) => {
+    const now = new Date();
+    const reservationDate = new Date(reservation.reservationDate);
+    const startTimeParts = reservation.reservation_STime.split(":").map(Number);
+    const endTimeParts = reservation.reservation_ETime.split(":").map(Number);
+
+    // Create date objects for start and end times
+    const startDateTime = new Date(reservationDate);
+    startDateTime.setHours(startTimeParts[0], startTimeParts[1], 0, 0);
+
+    const endDateTime = new Date(reservationDate);
+    endDateTime.setHours(endTimeParts[0], endTimeParts[1], 0, 0);
+
+    // Check if current time is between start and end time
+    return now >= startDateTime && now <= endDateTime;
+  };
+
   const toggleModal = (reservationId) => {
     setActiveReservationId(reservationId);
     setModalVisible(!isModalVisible);
@@ -176,7 +194,7 @@ const Reservations = () => {
                   </Text>
                   <Text>שעת סיום: {filteredReservation.reservation_ETime}</Text>
                   <Text>
-                    {filteredReservation.reservationDate.toLocaleString()}
+                    {filteredReservation.reservationDate.toLocaleDateString()}
                   </Text>
                 </View>
                 {filteredReservation.reservationStatus === "הזמנה בהמתנה" ? (
@@ -190,16 +208,27 @@ const Reservations = () => {
                   </TouchableOpacity>
                 ) : (
                   <View style={styles.buttons}>
-                    <TouchableOpacity style={styles.blockedParkBtn}>
-                      <Text style={styles.buttonText}>חנייה תפוסה</Text>
+                    <TouchableOpacity
+                      onPress={() =>
+                        toggleModal(filteredReservation.reservationId)
+                      }
+                      style={styles.button}
+                    >
+                      <Text style={styles.buttonText}>ביטול חנייה</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
-                      style={styles.startParkBtn}
+                      style={
+                        isWithinReservationTime(filteredReservation)
+                          ? styles.startParkBtn
+                          : styles.disabledButton
+                      } // Apply styles conditionally
                       onPress={() =>
+                        isWithinReservationTime(filteredReservation) &&
                         navigation.navigate("ParkingPage", {
                           reservation: filteredReservation,
                         })
                       }
+                      disabled={!isWithinReservationTime(filteredReservation)} // Disable if not in time range
                     >
                       <Text style={styles.buttonText}>התחל חנייה</Text>
                     </TouchableOpacity>
@@ -259,6 +288,12 @@ const styles = StyleSheet.create({
     backgroundColor: "green",
     padding: 10,
     borderRadius: 15,
+    alignItems: "center",
+  },
+  disabledButton: {
+    backgroundColor: "#cccccc", // Gray color to indicate disabled
+    padding: 10,
+    borderRadius: 10,
     alignItems: "center",
   },
   parkingNameHeader: {

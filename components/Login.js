@@ -13,8 +13,10 @@ import { useNavigation } from "@react-navigation/native";
 
 import icon from "../assets/icon.png";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { registerForPushNotificationsAsync } from "../services/pushNotificationService";
+import { saveNotificationCode } from "../services/apiService";
 
-const LoginScreen = () => {
+const LoginScreen = ({ onLogin }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isChecked, setIsChecked] = useState(false);
@@ -33,6 +35,7 @@ const LoginScreen = () => {
       UserLastName: "string",
       UserCarNum: "string",
       UserPhone: "string",
+      notificationCode: "string",
       isAdmin: true,
       isManager: true,
     };
@@ -45,30 +48,39 @@ const LoginScreen = () => {
       body: JSON.stringify(formData),
     };
 
-    const url = `https://proj.ruppin.ac.il/cgroup68/test2/tar1/api/Users/LogIn`;
+    const url = `http://10.0.2.2:7157/api/Users/LogIn`;
 
     try {
       const response = await fetch(url, requestOptions);
       const data = await response.json();
-      AsyncStorage.setItem("userId", JSON.stringify(data.userId));
-      AsyncStorage.setItem("userFirstName", JSON.stringify(data.userFirstName));
-      switch (data.role) {
-        case 1:
-          console.log("Login Admin successful");
-          break;
-        case 2:
-          console.log("Login Manager successful");
-          break;
-        case 3:
-          console.log("Login User successful");
+      console.log(data);
+      if (data && data.userId) {
+        onLogin();
+        AsyncStorage.setItem("userId", JSON.stringify(data.userId));
+        registerForPushNotificationsAsync().then((token) => {
+          if (token) {
+            saveNotificationCode(data.userId, token);
+          }
+        });
+        AsyncStorage.setItem(
+          "userFirstName",
+          JSON.stringify(data.userFirstName)
+        );
+
+        if (data.isAdmin) {
+          console.log("התחברות אדמין הצליחה");
+        } else if (data.isParkingManager) {
+          console.log("התחברות מנהל חניה הצליחה");
+        } else {
+          console.log("התחברות משתמש רגיל הצליחה");
           navigation.navigate("MainScreen");
-          break;
-        default:
-          alert("Email or Password incorrect");
-          break;
+        }
+      } else {
+        alert("האימייל או הסיסמה אינם נכונים");
       }
     } catch (error) {
-      console.error("Error:", error, url);
+      console.error("שגיאה:", error, url);
+      alert("אירעה שגיאה במהלך ההתחברות. אנא נסה שוב.");
     }
   };
 

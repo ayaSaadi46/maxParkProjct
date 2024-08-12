@@ -19,7 +19,7 @@ import { updateUserDetails } from "../services/apiService";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import NavBar from "./NavBar";
 
-const Profile = () => {
+const Profile = ({ onLogout }) => {
   const navigation = useNavigation();
   const [userData, setUserData] = useState({
     UserPassword: "",
@@ -37,8 +37,10 @@ const Profile = () => {
       const userId = await AsyncStorage.getItem("userId");
       if (userId !== null) {
         const user = await getUserById(userId);
-
-        setUserData(user);
+        setUserData((prevData) => ({
+          ...prevData,
+          ...user,
+        }));
       }
     };
 
@@ -48,7 +50,10 @@ const Profile = () => {
   const handleLogout = async () => {
     try {
       await AsyncStorage.clear();
-      navigation.navigate("Login");
+      onLogout();
+      setTimeout(() => {
+        navigation.navigate("Login");
+      }, 200);
     } catch (error) {
       Alert.alert("Error", "Failed to log out. Please try again.");
     }
@@ -179,7 +184,11 @@ const Profile = () => {
         </View>
         {[
           { label: "מייל", name: "email", value: userData.email },
-          { label: "מספר טלפון", name: "userPhone", value: userData.userPhone },
+          {
+            label: "מספר טלפון",
+            name: "userPhone",
+            value: userData.userPhone.toString(),
+          },
           {
             label: "מספר רכב",
             name: "userCarNum",
@@ -255,10 +264,11 @@ const styles = StyleSheet.create({
     color: "gray",
   },
   infoContainer: {
-    flexDirection: "row",
+    flexDirection: "row-reverse",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 10,
+    marginBottom: 25,
+    writingDirection: "rtl",
   },
   infoLabel: {
     fontSize: 18,

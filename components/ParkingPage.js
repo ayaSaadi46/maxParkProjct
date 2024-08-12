@@ -16,7 +16,6 @@ const ParkingPage = () => {
   useEffect(() => {
     if (reservation) {
       const timeDifference = calculateTimeDifferenceInSeconds(
-        reservation.reservation_STime,
         reservation.reservation_ETime
       );
       setRemainingTime(timeDifference);
@@ -31,11 +30,34 @@ const ParkingPage = () => {
     return () => clearInterval(timer);
   }, []);
 
-  function calculateTimeDifferenceInSeconds(startTime, endTime) {
-    const start = new Date(`1970-01-01T${startTime}Z`);
-    const end = new Date(`1970-01-01T${endTime}Z`);
-    const differenceInMilliseconds = end - start;
-    return differenceInMilliseconds / 1000;
+  function calculateTimeDifferenceInSeconds(endTime) {
+    const now = new Date();
+    console.log("Current Time (now):", now);
+
+    // Extract hours and minutes from current time
+    const currentHours = now.getHours();
+    const currentMinutes = now.getMinutes();
+
+    // Parse the end time
+    const [endHours, endMinutes] = endTime.split(":").map(Number);
+    console.log("End Time (hours and minutes):", endHours, endMinutes);
+
+    // Calculate the total minutes for both times
+    const currentTotalMinutes = currentHours * 60 + currentMinutes;
+    const endTotalMinutes = endHours * 60 + endMinutes;
+
+    console.log("Current Total Minutes:", currentTotalMinutes);
+    console.log("End Total Minutes:", endTotalMinutes);
+
+    // Calculate the difference in minutes
+    const differenceInMinutes = endTotalMinutes - currentTotalMinutes;
+    console.log("Difference in Minutes:", differenceInMinutes);
+
+    // Convert to seconds
+    const differenceInSeconds = differenceInMinutes * 60;
+    console.log("Difference in Seconds:", differenceInSeconds);
+
+    return differenceInSeconds;
   }
 
   const formatTime = (time) => {

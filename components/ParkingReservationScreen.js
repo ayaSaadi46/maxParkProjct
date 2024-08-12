@@ -65,7 +65,7 @@ const ParkingReservationScreen = ({ onReservationConfirm }) => {
 
     try {
       const response = await fetch(
-        "https://proj.ruppin.ac.il/cgroup68/test2/tar1/api/Reservasions/newReservation",
+        "http://10.0.2.2:7157/api/Reservasions/newReservation",
         {
           method: "POST",
           headers: {

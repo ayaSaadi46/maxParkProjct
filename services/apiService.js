@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const baseUrl = `https://proj.ruppin.ac.il/cgroup68/test2/tar1`;
+//const baseUrl = `https://proj.ruppin.ac.il/cgroup68/test2/tar1`;
+const baseUrl = `http://10.0.2.2:7157`;
 
 export const login = async (formData) => {
   const fullUrl = `${baseUrl}/Users/LogIn`;
@@ -20,7 +21,7 @@ export const login = async (formData) => {
 };
 
 export const getAllReservations = async () => {
-  const fullUrl = `${baseUrl}/api/Reservasions/allReservations`;
+  const fullUrl = `${baseUrl}/api/Reservasions/readReservations`;
   try {
     const response = await axios.get(fullUrl);
 
@@ -32,7 +33,7 @@ export const getAllReservations = async () => {
 };
 
 export const getAllReservationsByUserId = async (userId) => {
-  const fullUrl = `${baseUrl}/api/Reservasions/allReservations/${userId}`;
+  const fullUrl = `${baseUrl}/api/Reservasions/readReservations/${userId}`;
   try {
     const response = await axios.get(fullUrl);
 
@@ -63,6 +64,23 @@ export const updateUserDetails = async (userDataToUpdate) => {
     return response.data;
   } catch (error) {
     console.error("Error updating user details:", error);
+    throw error;
+  }
+};
+
+export const saveNotificationCode = async (userId, notificationCode) => {
+  try {
+    const formData = {
+      userId,
+      notificationCode,
+    };
+    const response = await axios.post(
+      `${baseUrl}/api/Users/notificationCode`,
+      formData
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error updating user notification code:", error);
     throw error;
   }
 };
