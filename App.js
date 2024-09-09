@@ -11,7 +11,6 @@ import Profile from "./components/Profile";
 import ParkingPage from "./components/ParkingPage";
 import ParkingReservationScreen from "./components/ParkingReservationScreen";
 import Reservations from "./components/Reservations";
-import ParkingLot from "./components/ParkingLot";
 import Header from "./components/Header";
 
 const Stack = createNativeStackNavigator();
@@ -97,14 +96,6 @@ export default function App() {
         <Stack.Screen
           name="Reservations"
           component={Reservations}
-          options={{
-            header: () => <Header />,
-            headerShown: true,
-          }}
-        />
-        <Stack.Screen
-          name="ParkingLot"
-          component={ParkingLot}
           options={{
             header: () => <Header />,
             headerShown: true,

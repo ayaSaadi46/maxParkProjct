@@ -55,7 +55,7 @@ const ParkingReservationScreen = ({ onReservationConfirm }) => {
     const data = JSON.stringify({
       reservationId: 0,
       userId: user.userId,
-      parkId: 3,
+      parkId: 1,
       reservation_Date: reservationDate,
       reservation_STime: formattedStartTime,
       reservation_ETime: formattedEndTime,
@@ -120,10 +120,7 @@ const ParkingReservationScreen = ({ onReservationConfirm }) => {
           placeholder={{ label: "בחר חניון...", value: null }}
           value={selectedParkingLot}
           onValueChange={setSelectedParkingLot}
-          items={[
-            { label: "חניון א", value: "parkingLotA" },
-            { label: "חניון ב", value: "parkingLotB" },
-          ]}
+          items={[{ label: "חניון רופין", value: "parkingLotA" }]}
           style={pickerSelectStyles}
         />
         <View style={styles.timeContainer}>

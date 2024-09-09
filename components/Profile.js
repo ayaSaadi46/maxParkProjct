@@ -28,8 +28,11 @@ const Profile = ({ onLogout }) => {
     userLastName: "",
     userCarNum: "",
     userPhone: "",
+    userImagePath: "",
+    notificationCode: "",
     isAdmin: true,
-    isManager: true,
+    isActive: true,
+    isParkingManager: true,
   });
 
   useEffect(() => {
@@ -74,12 +77,15 @@ const Profile = ({ onLogout }) => {
           userId: parseInt(userId, 10),
           userEmail: userData.email,
           userPassword: "",
-          userName: userData.userFirstName,
+          userFirstName: userData.userFirstName,
           userLastName: userData.userLastName,
           userCarNum: userData.userCarNum,
-          userPhone: userData.userPhone,
+          userPhone: userData.userPhone.toString(),
+          userImagePath: "",
+          notificationCode: userData.notificationCode,
           isAdmin: userData.isAdmin,
-          isManager: userData.isManager,
+          isActive: userData.isActive,
+          isParkingManager: userData.isParkingManager,
         };
         const updatedUser = await updateUserDetails(userDataToUpdate);
         console.log("User data updated:", updatedUser);

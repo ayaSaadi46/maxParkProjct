@@ -31,13 +31,15 @@ const LoginScreen = ({ onLogin }) => {
       UserId: 0,
       UserEmail: email,
       UserPassword: password,
-      UserName: "string",
+      UserFirstName: "string",
       UserLastName: "string",
       UserCarNum: "string",
       UserPhone: "string",
       notificationCode: "string",
+      userImagePath: "string",
       isAdmin: true,
-      isManager: true,
+      isActive: true,
+      isParkingManager: true,
     };
 
     const requestOptions = {

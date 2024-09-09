@@ -132,14 +132,6 @@ const ParkingPage = () => {
         </View>
       </View>
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.blueButton}>
-          <Text style={styles.buttonText}>הארכת זמן חנייה</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.redButton}>
-          <Text style={styles.buttonText}>מישהו חוסם אותי</Text>
-        </TouchableOpacity>
-      </View>
-      <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.largeButton} onPress={toggleModal}>
           <Text style={styles.buttonText}>שחרור חנייה</Text>
         </TouchableOpacity>

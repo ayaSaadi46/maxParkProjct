@@ -39,7 +39,7 @@ export const getAllReservationsByUserId = async (userId) => {
 
     return response.data;
   } catch (error) {
-    console.error("Failed to fetch getAllReservations:", error);
+    console.error("Failed to fetch getAllReservationsByUserId:", error);
     return null;
   }
 };
@@ -51,7 +51,7 @@ export const getUserById = async (userId) => {
 
     return response.data;
   } catch (error) {
-    console.error("Failed to fetch getAllReservations:", error);
+    console.error("Failed to fetch getUserById:", error);
     return null;
   }
 };
